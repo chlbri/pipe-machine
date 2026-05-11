@@ -1,5 +1,4 @@
 import type { Fn } from '@bemedev/pipe';
-import type { StandardSchemaV1 } from '@standard-schema/spec';
 import type { MaybePromiseFn } from './types.return';
 import type {
   Dependances,
@@ -9,7 +8,7 @@ import type {
   UniqueOrdered,
 } from './types.strict';
 
-export type { Fn, StandardSchemaV1 };
+export type { Fn };
 
 export type First<T extends readonly unknown[]> = T extends readonly [
   infer F,
@@ -24,12 +23,6 @@ export type Last<T extends readonly unknown[]> = T extends readonly [
 ]
   ? L
   : never;
-
-export type SchemaInput<S extends StandardSchemaV1> =
-  StandardSchemaV1.InferInput<S>;
-
-export type SchemaOutput<S extends StandardSchemaV1> =
-  StandardSchemaV1.InferOutput<S>;
 
 export type ReturnTypes<TFns extends Record<string, Fn>> = {
   [K in keyof TFns]: ReturnType<TFns[K]>;
