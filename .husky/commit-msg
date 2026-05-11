@@ -1,0 +1,15 @@
+# Get the commit message from the file passed as argument
+commit_msg_file="$1"
+commit_msg=$(cat "$commit_msg_file")
+
+echo "Checking commit message: $commit_msg"
+
+# If the message contains "_NO_CI", skip CI
+if echo "$commit_msg" | grep -q "_NO_CI"; then
+  echo "🚫 CI skipped: _NO_CI detected in commit message"
+  exit 0
+fi
+
+pnpm run ci
+git add .
+echo "✅ CI passed 😎"

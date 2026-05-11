@@ -1,0 +1,13 @@
+name: Admin Update
+
+on:
+  # Déclenchement manuel
+  workflow_dispatch:
+  # Cron chaque premier du mois à 4h UTC
+  schedule:
+    - cron: '0 4 1 * *'
+
+jobs:
+  all:
+    uses: chlbri/node-github-actions/.github/workflows/upgrade.yml@main
+    secrets: inherit

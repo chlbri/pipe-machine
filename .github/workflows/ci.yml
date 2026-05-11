@@ -1,0 +1,20 @@
+name: CI
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to test'
+        required: false
+        type: string
+
+  push:
+    branches-ignore:
+      - master
+      - main
+      - canary
+      - beta
+
+jobs:
+  all:
+    uses: chlbri/node-github-actions/.github/workflows/ci.yml@main

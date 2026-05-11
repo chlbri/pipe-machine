@@ -1,0 +1,11 @@
+name: Publish
+on:
+  push:
+    branches:
+      - master
+      - main
+
+jobs:
+  all:
+    uses: chlbri/node-github-actions/.github/workflows/publish.yml@main
+    secrets: inherit
