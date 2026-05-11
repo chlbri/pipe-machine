@@ -6,13 +6,10 @@ export type {
   Last,
   MergeFns,
   Pipeline,
-  PipeTyped,
   PipeUntyped,
-  SchemaConstrainedFns,
   SchemaInput,
   SchemaOutput,
   StandardSchemaV1,
-  ReturnTypes as TupleReturnTypes,
-  TypedPipeline,
+  ReturnTypes,
 } from './types';
 export type { MaybePromiseFn } from './types.return';

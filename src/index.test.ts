@@ -82,7 +82,7 @@ describe('Pipe — partial overrides (untyped)', () => {
     const fn = createPipe('add1', 'double').define({ add1, double });
     expect(fn(5)).toBe(12); // (5 + 1) * 2
 
-    const fn2 = fn.define({ double: (x: number) => x * 3 });
+    const fn2 = fn.define({ double: x => x * 3 });
     expect(fn2(5)).toBe(18); // (5 + 1) * 3
   });
 

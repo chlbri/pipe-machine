@@ -1,7 +1,12 @@
 import { notTyped } from '@bemedev/pipe';
 import type { Fn, Pipeline, PipeUntyped } from './types';
+import type { Dependances } from './types.strict';
 
-class Pipe<Keys extends readonly string[]> implements PipeUntyped<Keys> {
+class Pipe<
+  Keys extends readonly string[],
+  // Remains definitions of functions
+  D extends Dependances<Keys> = Dependances<Keys>,
+> implements PipeUntyped<Keys> {
   readonly #keys: Keys;
 
   private constructor(keys: Keys) {
