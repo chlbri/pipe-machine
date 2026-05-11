@@ -7,7 +7,12 @@ export default defineConfig({
   server: {
     host: '0.0.0.0',
   },
-  plugins: [aliasTs(tsconfig as any), exclude({})],
+  plugins: [
+    aliasTs(tsconfig as any),
+    exclude({
+      ignoreCoverageFiles: ['**/*.test-d.ts'],
+    }),
+  ],
   test: {
     bail: 100,
     maxConcurrency: 30,

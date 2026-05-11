@@ -6,6 +6,7 @@ export type {
   Last,
   MergeFns,
   Pipeline,
+  PipeBuilderType,
   PipeUntyped,
   SchemaInput,
   SchemaOutput,

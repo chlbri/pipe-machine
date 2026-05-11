@@ -1,12 +1,51 @@
 import { notTyped } from '@bemedev/pipe';
-import type { Fn, Pipeline, PipeUntyped } from './types';
-import type { Dependances } from './types.strict';
+import type { Fn, PipeUntyped } from './types';
 
-class Pipe<
-  Keys extends readonly string[],
-  // Remains definitions of functions
-  D extends Dependances<Keys> = Dependances<Keys>,
-> implements PipeUntyped<Keys> {
+class PipeBuilderImpl<
+  AllKeys extends readonly string[],
+  TFns extends Partial<Record<AllKeys[number], Fn>>,
+> {
+  readonly #allKeys: AllKeys;
+  readonly #fns: TFns;
+
+  constructor(allKeys: AllKeys, fns: TFns) {
+    this.#allKeys = allKeys;
+    this.#fns = fns;
+  }
+
+  define(name: string | Fn, impl?: Fn): any {
+    if (typeof name === 'function') {
+      impl = name;
+      const keys1 = new Set(Object.keys(this.#fns));
+      const keys2 = new Set(this.#allKeys);
+      const remain = Array.from(keys1.symmetricDifference(keys2))[0];
+      name = remain;
+    }
+    const newFns = { ...this.#fns, [name]: impl } as any;
+    const uniqueKeys = [...new Set(this.#allKeys)];
+    const allDefined = uniqueKeys.every(k => k in newFns);
+    if (allDefined) {
+      return this.build(newFns as any);
+    }
+    return new PipeBuilderImpl(this.#allKeys, newFns);
+  }
+
+  build(fns: Record<string, Fn>): any {
+    const ordered = this.#allKeys.map(k => fns[k]);
+    const composed = notTyped(...(ordered as unknown as [Fn, ...Fn[]]));
+    const result = Object.assign(composed, {
+      define: (overrides: Record<string, Fn>) => {
+        return new PipeBuilderImpl(this.#allKeys, fns as any).build({
+          ...fns,
+          ...overrides,
+        } as any);
+      },
+    });
+    return result as any;
+  }
+}
+
+class Pipe<Keys extends readonly string[]> implements PipeUntyped<Keys> {
   readonly #keys: Keys;
 
   private constructor(keys: Keys) {
@@ -19,29 +58,18 @@ class Pipe<
     return new Pipe(keys) as unknown as PipeUntyped<Keys>;
   }
 
-  define<const TFns extends Record<Keys[number], Fn>>(
-    fns: TFns,
-  ): Pipeline<Keys, TFns> {
+  init(impl: Fn): any {
     if (this.#keys.length === 0) {
       throw new Error('createPipe requires at least one step.');
     }
-    const ordered = this.#keys.map(k => {
-      const fn = fns[k as Keys[number]];
-      if (typeof fn !== 'function') {
-        throw new Error(
-          `Step "${k}" is not implemented. Pass it in the define() record.`,
-        );
-      }
-      return fn;
-    });
-    const composed = notTyped(...(ordered as unknown as [Fn, ...Fn[]]));
-    const result = Object.assign(composed, {
-      define: (overrides: Partial<Record<Keys[number], Fn>>) => {
-        const merged: any = { ...fns, ...overrides };
-        return this.define(merged);
-      },
-    }) as Pipeline<Keys, TFns>;
-    return result;
+    const firstKey = this.#keys[0];
+    const fns = { [firstKey]: impl } as any;
+    const uniqueKeys = [...new Set(this.#keys)];
+    const allDefined = uniqueKeys.every(k => k in fns);
+    if (allDefined) {
+      return new PipeBuilderImpl(this.#keys, fns).build(fns);
+    }
+    return new PipeBuilderImpl(this.#keys, fns);
   }
 }
 
