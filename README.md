@@ -34,8 +34,8 @@ import { createPipe } from '@bemedev/pipe-machine';
 
 // Create a simple pipe
 const pipe = createPipe<number>()
-  .step(x => x * 2)
-  .step(x => x + 10);
+  .define(x => x * 2)
+  .define(x => x + 10);
 
 const result = pipe(5); // 20
 ```
@@ -46,8 +46,8 @@ const result = pipe(5); // 20
 
 Creates a new pipe builder for composing functions.
 
-**Returns:** A pipe builder instance with chainable `step()` methods and a
-`build()` method to finalize the pipeline.
+**Returns:** A pipe builder instance with chainable `define()` methods and
+a `build()` method to finalize the pipeline.
 
 ### Exported Types
 

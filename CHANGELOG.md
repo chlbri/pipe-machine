@@ -3,6 +3,21 @@
 <details>
 <summary>
 
+## **[0.1.1] - 11/05/2026** => _15:44_
+
+</summary>
+
+- Update: Correct API documentation in README to reflect `define()` method
+  naming
+- <u>Test coverage **_100%_**</u>
+
+</details>
+
+<br/>
+
+<details>
+<summary>
+
 ## **[0.1.0] - 11/05/2026** => _15:28_
 
 </summary>
