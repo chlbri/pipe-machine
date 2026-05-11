@@ -1,3 +1,15 @@
 {
-  "github-actions.workflows.pinned.workflows": [".github/workflows/ci.yml"]
+  "github-actions.workflows.pinned.workflows": [
+    ".github/workflows/ci.yml"
+  ],
+  "chat.tools.terminal.autoApprove": {
+    "/^bash \\.claude/skills/update-docs/scripts/check-version\\.sh$/": {
+      "approve": true,
+      "matchCommandLine": true
+    },
+    "/^bash \\.claude/skills/update-docs/scripts/find-diff\\.sh$/": {
+      "approve": true,
+      "matchCommandLine": true
+    }
+  }
 }
