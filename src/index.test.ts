@@ -204,10 +204,12 @@ test('#19 => impl() overrides a type-only placeholder', () => {
 
 test('#20 => notTyped throws when no steps are provided', () => {
   const m = Pipe.define('add1', add1);
-  expect(() => m.notTyped()).toThrow('at least one step');
+  expect(() => m.notTyped()).toThrow('Pipe.notTyped() requires at least one step');
 });
 
 test('#21 => notTyped throws when a step has no implementation', () => {
   const m = Pipe.type<(x: number) => string>()('numToStr');
-  expect(() => m.notTyped('numToStr')).toThrow('"numToStr" is not implemented');
+  expect(() => m.notTyped('numToStr')).toThrow(
+    '"numToStr" is not implemented',
+  );
 });

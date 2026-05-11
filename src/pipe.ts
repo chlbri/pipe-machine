@@ -386,7 +386,7 @@ export class Pipe<TDefs extends Registry = Record<never, never>> {
    */
   notTyped(...steps: StepRef[]): Fn {
     if (steps.length === 0) {
-      throw new Error('Pipe.pipe() requires at least one step.');
+      throw new Error('Pipe.notTyped() requires at least one step.');
     }
     const fns = steps.map(ref => {
       const name = nameOf(ref);
