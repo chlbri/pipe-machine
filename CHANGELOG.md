@@ -1,11 +1,28 @@
 ## CHANGELOG
 
+<details>
+<summary>
+
+## **[0.1.0] - 11/05/2026** => _15:28_
+
+</summary>
+
+- Fiest release of `@bemedev/pipe-machine` package
+- Add strongly-typed `Pipe` class with fluent builder pattern for function
+  composition
+- Add named-step Pipe implementation using `@bemedev/pipe` library
+- Add `@standard-schema/spec` integration for schema validation support
+- Add comprehensive TypeScript type exports (`Pipe`, `Fn`, `Pipeline`,
+  `PipeBuilderType`, etc.)
+- Add support for both sync and async function pipelines via
+  `MaybePromiseFn`
+- Fix error message in `notTyped()` method for better debugging
+- <u>Test coverage **_100%_**</u>
+
+</details>
+
 <br/>
 <br/>
-
-### Version [0.0.1] --> _date & hour_
-
-- ✨ Première version de la bibliothèque
 
 <br/>
 

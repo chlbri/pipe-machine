@@ -1,8 +1,62 @@
-# Beatifull lib
+# @bemedev/pipe-machine
 
-A beautifull description
+A strongly-typed pipe class library for function composition with advanced
+TypeScript support. Build fluent, composable function pipelines with
+complete type safety and inference.
 
-<br/>
+## Features
+
+- **Strongly-Typed Pipes** - Full TypeScript type inference and validation
+  throughout the pipeline
+- **Fluent Builder Pattern** - Chainable, readable API for composing
+  functions
+- **Named-Step Support** - Create named pipeline steps for better code
+  clarity
+- **Schema Validation** - Integration with @standard-schema/spec for
+  runtime validation
+- **Async Support** - Handle both synchronous and asynchronous function
+  pipelines
+- **Zero Dependencies** - Lightweight library with minimal external
+  dependencies
+
+## Installation
+
+```bash
+npm install @bemedev/pipe-machine
+# or
+pnpm add @bemedev/pipe-machine
+```
+
+## Quick Start
+
+```typescript
+import { createPipe } from '@bemedev/pipe-machine';
+
+// Create a simple pipe
+const pipe = createPipe<number>()
+  .step(x => x * 2)
+  .step(x => x + 10);
+
+const result = pipe(5); // 20
+```
+
+## API
+
+### `createPipe<T>()`
+
+Creates a new pipe builder for composing functions.
+
+**Returns:** A pipe builder instance with chainable `step()` methods and a
+`build()` method to finalize the pipeline.
+
+### Exported Types
+
+- `Pipe<T>` - The main pipe type for function composition
+- `Fn` - Function type definition
+- `Pipeline` - Pipeline execution type
+- `PipeBuilderType` - Builder pattern type
+- `MaybePromiseFn` - Type for both sync and async functions
+- `StandardSchemaV1` - Schema validation type
 
 ## Licence
 
@@ -14,7 +68,7 @@ Read [CHANGELOG.md](CHANGELOG.md) for more details about the changes.
 
 <br/>
 
-## Auteur
+## Author
 
 chlbri (bri_lvi@icloud.com)
 
@@ -24,6 +78,7 @@ chlbri (bri_lvi@icloud.com)
 
 <br/>
 
-## Liens
+## Links
 
-- [Documentation](https://github.com/chlbri/new-package)
+- [Repository](https://github.com/chlbri/pipe-machine)
+- [npm Package](https://www.npmjs.com/package/@bemedev/pipe-machine)
