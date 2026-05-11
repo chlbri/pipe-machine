@@ -46,8 +46,7 @@ const result = pipe(5); // 20
 
 Creates a new pipe builder for composing functions.
 
-**Returns:** A pipe builder instance with chainable `define()` methods and
-a `build()` method to finalize the pipeline.
+**Returns:** A pipe builder instance with chainable `define()` methods.
 
 ### Exported Types
 

@@ -3,6 +3,21 @@
 <details>
 <summary>
 
+## **[0.1.2] - 11/05/2026** => _15:51_
+
+</summary>
+
+- Update: Clarify API documentation in README by removing outdated
+  `build()` method reference
+- <u>Test coverage **_100%_**</u>
+
+</details>
+
+<br/>
+
+<details>
+<summary>
+
 ## **[0.1.1] - 11/05/2026** => _15:44_
 
 </summary>
