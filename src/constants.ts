@@ -1,5 +1,5 @@
 export const GUARD_TYPE = {
-  guard: "guard",
-  and: "and",
-  or: "or",
+  guard: 'guard',
+  and: 'and',
+  or: 'or',
 } as const;

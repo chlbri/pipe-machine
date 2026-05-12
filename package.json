@@ -116,6 +116,7 @@
   },
   "dependencies": {
     "@bemedev/boolean-recursive": "^0.0.3",
+    "@bemedev/decompose": "^2.2.0",
     "@bemedev/pipe": "1.6.0",
     "@standard-schema/spec": "^1.1.0"
   },

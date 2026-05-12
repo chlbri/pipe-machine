@@ -1,13 +1,8 @@
-import type { Describer, FromDescriber, FromDescribers } from "./types";
+import type { Describer, FromDescriber } from './types';
 
-export const fromDescriber = <D extends Describer>(d: D): FromDescriber<D> => {
-  const out: any = typeof d === "string" ? d : d.name;
-  return out;
-};
-
-export const fromDescribers = <Keys extends readonly Describer[]>(
-  keys: Keys,
-): FromDescribers<Keys> => {
-  const out: any = keys.map(fromDescriber);
+export const fromDescriber = <D extends Describer>(
+  d: D,
+): FromDescriber<D> => {
+  const out: any = typeof d === 'string' ? d : d.name;
   return out;
 };

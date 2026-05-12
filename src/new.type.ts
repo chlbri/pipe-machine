@@ -1,9 +1,9 @@
-import type { GUARD_TYPE } from "./constants";
-import type { Describer, FromDescriber } from "./types";
+import type { GUARD_TYPE } from './constants';
+import type { Describer, FromDescriber } from './types';
 
 type gType = typeof GUARD_TYPE;
-type and = gType["and"];
-type or = gType["or"];
+type and = gType['and'];
+type or = gType['or'];
 
 export type SoA<T> = T | T[] | readonly T[];
 
@@ -31,7 +31,7 @@ export type Delayed = {
   description?: string;
 };
 
-export type Config = Condition[] | Describer | Delayed;
+export type Config = readonly Condition[] | Describer | Delayed;
 
 export type ReduceGuards<T extends GuardConfig> = T extends Describer
   ? T
@@ -41,18 +41,17 @@ export type ReduceGuards<T extends GuardConfig> = T extends Describer
       ? ReduceGuards<T[or][number]>
       : never;
 
-type _ExtractGuards<T extends Config | Condition> = T extends (infer E extends
-  Condition)[]
-  ? E extends Condition
-    ? ReduceArray<E["cond"]> extends infer R1 extends GuardConfig
+type _ExtractGuards<T extends Config | Condition> =
+  T extends readonly (infer E extends Condition)[]
+    ? ReduceArray<E['cond']> extends infer R1 extends GuardConfig
       ? ReduceGuards<R1> extends infer R extends Describer
-        ? FromDescriber<R> | _ExtractGuards<ReduceArray<E["fn"]>>
+        ? FromDescriber<R> | _ExtractGuards<ReduceArray<E['fn']>>
         : never
       : never
-    : never
-  : never;
+    : never;
 
-export type ExtractGuards<T extends Config> = _ExtractGuards<T>;
+export type ExtractGuards<T extends Config> =
+  _ExtractGuards<T> extends infer R extends string ? R : never;
 
 type ExtractActionsFromFn<F> = F extends Describer
   ? FromDescriber<F>
@@ -60,15 +59,19 @@ type ExtractActionsFromFn<F> = F extends Describer
     ? _ExtractActions<F>
     : never;
 
-type _ExtractActions<T extends Config> = T extends (infer E extends Condition)[]
-  ? E extends Condition
-    ? ExtractActionsFromFn<ReduceArray<E["fn"]>>
-    : never
-  : T extends Delayed
-    ? ExtractActionsFromFn<ReduceArray<T["fn"]>>
-    : never;
+type _ExtractActions<T extends Config> =
+  T extends readonly (infer E extends Condition)[]
+    ? E extends Condition
+      ? ExtractActionsFromFn<ReduceArray<E['fn']>>
+      : never
+    : T extends Delayed
+      ? ExtractActionsFromFn<ReduceArray<T['fn']>>
+      : T extends Describer
+        ? FromDescriber<T>
+        : never;
 
-export type ExtractActions<T extends Config> = _ExtractActions<T>;
+export type ExtractActions<T extends Config> =
+  _ExtractActions<T> extends infer R extends string ? R : never;
 
 type ExtractDelayFromFn<F> = F extends Describer
   ? never
@@ -76,12 +79,12 @@ type ExtractDelayFromFn<F> = F extends Describer
     ? _ExtractDelays<F>
     : never;
 
-type _ExtractDelays<T extends Config> = T extends (infer E extends Condition)[]
-  ? E extends Condition
-    ? ExtractDelayFromFn<ReduceArray<E["fn"]>>
-    : never
+type _ExtractDelays<T extends Config> = T extends readonly (infer E extends
+  Condition)[]
+  ? ExtractDelayFromFn<ReduceArray<E['fn']>>
   : T extends Delayed
-    ? FromDescriber<T["delay"]> | ExtractDelayFromFn<ReduceArray<T["fn"]>>
+    ? FromDescriber<T['delay']> | ExtractDelayFromFn<ReduceArray<T['fn']>>
     : never;
 
-export type ExtractDelays<T extends Config> = _ExtractDelays<T>;
+export type ExtractDelays<T extends Config> =
+  _ExtractDelays<T> extends infer R extends string ? R : never;

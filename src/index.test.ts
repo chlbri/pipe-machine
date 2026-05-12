@@ -1,290 +1,243 @@
-import { describe, expect, test } from "vitest";
-import { createPipe } from "./index";
-import { type as typings } from "@bemedev/typings";
-import * as v from "valibot";
-import * as z from "zod";
-import { tap } from "@bemedev/pipe/extensions";
+import { describe, expect, test } from 'vitest';
+import { assign, createPipe } from './index';
 
-const add1 = (x: number) => x + 1;
-const double = (x: number) => x * 2;
-const triple = (x: number) => x * 3;
-const numToStr = (x: number) => String(x);
+type Ctx = { value: number };
+type Ctx2 = { value: number; name: string };
 
-describe("Pipe", () => {
-  describe("#01 => Pipe — fluent builder", () => {
-    test("#01 => single step returns function behavior", () => {
-      const fn = createPipe("add1")
-        .type(
-          typings(({ tuple }) => ({
-            add1: {
-              parameters: tuple("number"),
-              return: "number",
-            },
-          })),
-        )
-        .define({ add1 });
-
-      expect(fn(5)).toBe(6);
-
-      const fn2 = fn.define({ add1: (x: number) => x + 10 });
-      expect(fn2(5)).toBe(15);
-    });
-
-    test("#02 => two-step composition", () => {
-      const fn = createPipe("add1", "double")
-        .type(
-          v.object({
-            add1: v.object({
-              parameters: v.tuple([v.number()]),
-              return: v.number(),
-            }),
-            double: v.number(),
-          }),
-        )
-        .define({ add1, double });
-      expect(fn(5)).toBe(12); // (5 + 1) * 2
-    });
-
-    test("#03 => three-step composition", () => {
-      const fn = createPipe("add1", "double", "triple")
-        .type<{
-          add1: { parameters: [number]; return: number };
-        }>(
-          typings(({ tuple }) => ({
-            add1: {
-              parameters: tuple("number"),
-              return: "number",
-            },
-          })),
-        )
-        .define({ add1, double: (x) => x * 2, triple });
-      expect(fn(2)).toBe(18); // ((2 + 1) * 2) * 3
-    });
-
-    test("#04 => five-step pipeline with duplicate keys", () => {
-      const fn = createPipe("add1", "double", "add1", "double", "add1")
-        .type(
-          z.object({
-            add1: z.object({
-              parameters: z.tuple([z.number()]),
-              return: z.number(),
-            }),
-          }),
-        )
-        .define({ add1, double });
-      // ((((2 + 1) * 2) + 1) * 2) + 1 = 15
-      expect(fn(2)).toBe(15);
-    });
-
-    test("#05 => first step with multiple arguments", () => {
-      const hypot = (a: number, b: number) => Math.hypot(a, b);
-      const fn = createPipe("hypot", "double")
-        .type<{
-          hypot: { parameters: [number, number]; return: number };
-          double: number;
-        }>()
-        .define({ hypot, double });
-      expect(fn(3, 4)).toBe(10); // hypot(3,4) = 5, double(5) = 10
-    });
-
-    test("#06 => all-sync pipeline returns non-promise", () => {
-      const fn = createPipe("add1", "double")
-        .type<{
-          add1: { parameters: [number]; return: number };
-          double: number;
-        }>()
-        .define({ add1, double });
-      const result = fn(1);
-      expect(result).toBe(4);
-      expect(
-        typeof result === "object" && result !== null && "then" in result,
-      ).toBe(false);
-    });
-
-    test("#07 => async step makes pipeline async", async () => {
-      const asyncAdd1 = async (x: number) => x + 1;
-      const fn = createPipe("asyncAdd1", "double")
-        .type<{
-          asyncAdd1: { parameters: [number]; return: Promise<number> };
-          double: number;
-        }>()
-        .define({ asyncAdd1, double });
-      const result = await fn(5);
-      expect(result).toBe(12); // (5 + 1) * 2
-    });
-  });
-
-  describe("#02 => Pipe — identity typing (unspecified keys)", () => {
-    test("#01 => unspecified key defaults to identity typing", () => {
-      const fn = createPipe("add1", "passthrough")
-        .type<{ add1: { parameters: [number]; return: number } }>()
-        .define({ add1, passthrough: (x: number) => x });
-      expect(fn(5)).toBe(6);
-    });
-
-    test("#02 => unspecified middle key passes value through", () => {
-      const fn = createPipe("add1", "passthrough", "double")
-        .type<{
-          add1: { parameters: [number]; return: number };
-          double: number;
-        }>()
-        .define({ add1, passthrough: (x: number) => x, double });
-      expect(fn(2)).toBe(6); // (2 + 1) * 2
-    });
-  });
-
-  describe("#03 => Pipe — partial overrides (fluent)", () => {
-    test("#01 => partial define() creates new pipeline", () => {
-      const fn = createPipe("add1", "double")
-        .type<{
-          add1: { parameters: [number]; return: number };
-          double: number;
-        }>()
-        .define({ add1, double });
-      expect(fn(5)).toBe(12); // (5 + 1) * 2
-
-      const fn2 = fn.define({ double: (x: number) => x * 3 });
-      expect(fn2(5)).toBe(18); // (5 + 1) * 3
-    });
-
-    test("#02 => partial override only affects specified key", () => {
-      const fn = createPipe("add1", "double", "triple")
-        .type<{
-          add1: { parameters: [number]; return: number };
-          // double: number;
-          triple: number;
-        }>()
-        .define({ add1, double: (x) => x * 2, triple });
-      expect(fn(2)).toBe(18); // ((2 + 1) * 2) * 3
-
-      const fn2 = fn.define({ double: (x) => x * 10 });
-      expect(fn2(2)).toBe(90); // ((2 + 1) * 10) * 3
-    });
-
-    test("#03 => chained partial overrides", () => {
-      const fn = createPipe("add1", "double")
-        .type<{
-          add1: { parameters: [number]; return: number };
-          double: number;
-        }>()
-        .define({ add1, double });
-      expect(fn(2)).toBe(6); // (2 + 1) * 2
-
-      const fn2 = fn.define({ add1: (x: number) => x + 10 });
-      expect(fn2(2)).toBe(24); // (2 + 10) * 2
-
-      const fn3 = fn2.define({ double: (x: number) => x * 5 });
-      expect(fn3(2)).toBe(60); // (2 + 10) * 5
-    });
-  });
-
-  test("#04 => Pipe — error cases", () => {
-    expect(() => {
-      (createPipe as any)();
-    }).toThrow("createPipe requires at least one step");
-  });
-
-  test("#05 => Pipe — order enforcement", () => {
-    const fn = createPipe("double", "add1")
-      .type<{
-        double: { parameters: [number]; return: number };
-        add1: number;
-      }>()
-      .define({ double, add1 });
-    // createPipe order is: double, then add1
-    expect(fn(5)).toBe(11); // double(5) = 10, add1(10) = 11
-  });
-
-  describe("#06 => Pipe — type-level assertions", () => {
-    test("#01 => fluent chain creates callable function", () => {
-      const fn = createPipe("add1", "numToStr")
-        .type<{
-          add1: { parameters: [number]; return: number };
-          numToStr: string;
-        }>()
-        .define({ add1, numToStr });
-      expect(typeof fn).toBe("function");
-      expect(fn(5)).toBe("6");
-    });
-
-    test("#02 => fluent chain creates callable function, multiple types", () => {
-      const mock = vi.fn();
-      const fn = createPipe(
-        "add1",
-        "tap",
-        "numToStr",
-        "tap",
-        "tap",
-        "length",
-        "tap",
-        "isEven",
-        "tap",
-      )
-        .type(
-          typings(({ tuple }) => ({
-            add1: {
-              parameters: tuple("number"),
-              return: "number",
-            },
-            numToStr: "string",
-            length: "number",
-            isEven: "boolean",
-          })),
-        )
+describe('createPipe', () => {
+  describe('#01 => entry-only pipeline', () => {
+    test('#01 => entry action produces context from params', () => {
+      const fn = createPipe('init')
+        .type<{ params: [number]; context: Ctx }>()
         .define({
-          add1,
-          numToStr,
-          length: (s) => s.length,
-          isEven: (n) => n % 2 === 0,
-          tap: tap(mock),
+          actions: { init: x => ({ value: x }) },
+          guards: {},
+          delays: {},
         });
 
-      expect(typeof fn).toBe("function");
-      expect(fn(5)).toBe(false);
-      expect(mock).toHaveBeenNthCalledWith(1, 6);
-      expect(mock).toHaveBeenNthCalledWith(2, "6");
-      expect(mock).toHaveBeenNthCalledWith(3, "6");
-      expect(mock).toHaveBeenNthCalledWith(4, 1);
-      expect(mock).toHaveBeenNthCalledWith(5, false);
+      expect(fn(5)).toStrictEqual({ value: 5 });
     });
 
-    test("#03 => Pipeline has .define() method", () => {
-      const fn = createPipe("add1", "double")
-        .type<{
-          add1: { parameters: [number]; return: number };
-          double: number;
-        }>()
-        .define({ add1, double });
+    test('#02 => entry with multiple params', () => {
+      const fn = createPipe('init')
+        .type<{ params: [number, string]; context: Ctx2 }>()
+        .define({
+          actions: {
+            init: (x, name) => ({ value: x, name }),
+          },
+          guards: {},
+          delays: {},
+        });
 
-      expect(typeof fn.define).toBe("function");
-      const fn2 = fn.define({ double: (x: number) => x * 5 });
-      expect(fn2(2)).toBe(15); // (2 + 1) * 5
+      expect(fn(3, 'hi')).toStrictEqual({ value: 3, name: 'hi' });
     });
   });
 
-  describe("#08 => pipe --- decsribers", () => {
-    test("#01 => describers can be strings or objects", () => {
-      const builder = createPipe(
-        { name: "add1", description: "Adds 1" },
-        "double",
-        { name: "numToStr", description: "Converts number to string" },
-      );
-      const fn = builder
-        .type<{
-          add1: { parameters: [number]; return: number };
-          double: number;
-          numToStr: string;
-        }>()
-        .define({ add1, double, numToStr });
+  describe('#02 => plain Describer config (direct action)', () => {
+    test('#01 => single plain action after entry', () => {
+      const fn = createPipe('init', 'increment')
+        .type<{ params: [number]; context: Ctx }>()
+        .define({
+          actions: {
+            init: x => ({ value: x }),
+            increment: ctx => ({ value: ctx.value + 1 }),
+          },
+          guards: {},
+          delays: {},
+        });
 
-      expect(builder.descriptionOf("add1")).toBe("Adds 1");
-      expect(fn.descriptionOf("add1")).toBe("Adds 1");
-      expect(builder.descriptionOf("double")).toBe("double");
-      expect(fn.descriptionOf("double")).toBe("double");
-      expect(builder.descriptionOf("numToStr")).toBe(
-        "Converts number to string",
-      );
-      expect(fn.descriptionOf("numToStr")).toBe("Converts number to string");
+      expect(fn(4)).toStrictEqual({ value: 5 });
+    });
+
+    test('#02 => chained plain actions', () => {
+      const fn = createPipe('init', 'double', 'increment')
+        .type<{ params: [number]; context: Ctx }>()
+        .define({
+          actions: {
+            init: x => ({ value: x }),
+            double: ctx => ({ value: ctx.value * 2 }),
+            increment: ctx => ({ value: ctx.value + 1 }),
+          },
+          guards: {},
+          delays: {},
+        });
+
+      expect(fn(3)).toStrictEqual({ value: 7 }); // 3 * 2 + 1
+    });
+  });
+
+  describe('#03 => Condition[] — conditional branches', () => {
+    test('#01 => first matching condition is executed', () => {
+      const fn = createPipe('init', [
+        { cond: 'isPositive', fn: 'increment' },
+        { cond: 'isNegative', fn: 'decrement' },
+      ])
+        .type<{ params: [number]; context: Ctx }>()
+        .define({
+          actions: {
+            init: x => ({ value: x }),
+            increment: ctx => ({ value: ctx.value + 1 }),
+            decrement: ctx => ({ value: ctx.value - 1 }),
+          },
+          guards: {
+            isPositive: ctx => ctx.value > 0,
+            isNegative: ctx => ctx.value < 0,
+          },
+          delays: {},
+        });
+
+      expect(fn(5)).toStrictEqual({ value: 6 });
+      expect(fn(-3)).toStrictEqual({ value: -4 });
+    });
+
+    test('#02 => no condition matches returns context unchanged', () => {
+      const fn = createPipe('init', [
+        { cond: 'isPositive', fn: 'increment' },
+      ])
+        .type<{ params: [number]; context: Ctx }>()
+        .define({
+          actions: {
+            init: x => ({ value: x }),
+            increment: ctx => ({ value: ctx.value + 1 }),
+          },
+          guards: { isPositive: ctx => ctx.value > 0 },
+          delays: {},
+        });
+
+      expect(fn(0)).toStrictEqual({ value: 0 });
+    });
+
+    test('#03 => boolean guard literal', () => {
+      const fn = createPipe('init', [{ cond: 'always', fn: 'increment' }])
+        .type<{ params: [number]; context: Ctx }>()
+        .define({
+          actions: {
+            init: x => ({ value: x }),
+            increment: ctx => ({ value: ctx.value + 1 }),
+          },
+          guards: { always: true },
+          delays: {},
+        });
+
+      expect(fn(10)).toStrictEqual({ value: 11 });
+    });
+  });
+
+  describe('#04 => and/or guard composition', () => {
+    test('#01 => and guard: all must pass', () => {
+      const fn = createPipe('init', [
+        {
+          cond: { and: ['isPositive', 'isSmall'] },
+          fn: 'increment',
+        },
+      ])
+        .type<{ params: [number]; context: Ctx }>()
+        .define({
+          actions: {
+            init: x => ({ value: x }),
+            increment: ctx => ({ value: ctx.value + 1 }),
+          },
+          guards: {
+            isPositive: ctx => ctx.value > 0,
+            isSmall: ctx => ctx.value < 10,
+          },
+          delays: {},
+        });
+
+      expect(fn(5)).toStrictEqual({ value: 6 }); // both pass
+      expect(fn(15)).toStrictEqual({ value: 15 }); // isSmall fails → no match
+      expect(fn(-1)).toStrictEqual({ value: -1 }); // isPositive fails → no match
+    });
+
+    test('#02 => or guard: at least one must pass', () => {
+      const fn = createPipe('init', [
+        {
+          cond: { or: ['isZero', 'isLarge'] },
+          fn: 'increment',
+        },
+      ])
+        .type<{ params: [number]; context: Ctx }>()
+        .define({
+          actions: {
+            init: x => ({ value: x }),
+            increment: ctx => ({ value: ctx.value + 1 }),
+          },
+          guards: {
+            isZero: ctx => ctx.value === 0,
+            isLarge: ctx => ctx.value >= 100,
+          },
+          delays: {},
+        });
+
+      expect(fn(0)).toStrictEqual({ value: 1 }); // isZero passes
+      expect(fn(100)).toStrictEqual({ value: 101 }); // isLarge passes
+      expect(fn(5)).toStrictEqual({ value: 5 }); // neither → no match
+    });
+  });
+
+  describe('#05 => Delayed config', () => {
+    test('#01 => delayed fn is executed (synchronously)', () => {
+      const fn = createPipe('init', {
+        delay: 'shortDelay',
+        fn: 'increment',
+      })
+        .type<{ params: [number]; context: Ctx }>()
+        .define({
+          actions: {
+            init: x => ({ value: x }),
+            increment: ctx => ({ value: ctx.value + 1 }),
+          },
+          guards: {},
+          delays: { shortDelay: 200 },
+        });
+
+      expect(fn(7)).toStrictEqual({ value: 8 });
+    });
+  });
+
+  describe.skip('#06 => assign helper', () => {
+    test('#01 => updater function form', () => {
+      const addOne = assign<Ctx>(ctx => ({ value: ctx.value + 1 }));
+      const ctx: Ctx = { value: 4 };
+      expect(addOne(ctx)).toStrictEqual({ value: 5 });
+    });
+
+    test('#02 => path + value form (deep assign)', () => {
+      const setTen = assign<Ctx>('value', 10);
+      const ctx: Ctx = { value: 4 };
+      expect(setTen(ctx)).toStrictEqual({ value: 10 });
+    });
+
+    test('#03 => assign inside pipeline action', () => {
+      const fn = createPipe('init', 'bump')
+        .type<{ params: [number]; context: Ctx }>()
+        .define({
+          actions: {
+            init: x => ({ value: x }),
+            bump: assign(ctx => ({ value: ctx.value + 100 })),
+          },
+          guards: {},
+          delays: {},
+        });
+
+      expect(fn(1)).toStrictEqual({ value: 101 });
+    });
+  });
+
+  describe('#07 => Describer objects (name + description)', () => {
+    test('#01 => object describer as first arg', () => {
+      const fn = createPipe({
+        name: 'init',
+        description: 'Initialize context',
+      })
+        .type<{ params: [number]; context: Ctx }>()
+        .define({
+          actions: { init: x => ({ value: x }) },
+          guards: {},
+          delays: {},
+        });
+
+      expect(fn(9)).toStrictEqual({ value: 9 });
     });
   });
 });

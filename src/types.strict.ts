@@ -1,4 +1,4 @@
-import type { Equals } from "@bemedev/pipe";
+import type { Equals } from '@bemedev/pipe';
 
 /**
  * Get the previous member of an array given the current index.
@@ -17,7 +17,7 @@ export type Previous<
   _Acc extends unknown[] = [],
 > = I extends 0
   ? never
-  : _Acc["length"] extends I
+  : _Acc['length'] extends I
     ? T extends readonly []
       ? never
       : _Acc extends readonly [...infer _Rest, infer Last]
@@ -44,7 +44,7 @@ export type FirstIndexOf<
   _Acc extends unknown[] = [],
 > = T extends readonly [infer First, ...infer Rest]
   ? First extends E
-    ? _Acc["length"]
+    ? _Acc['length']
     : FirstIndexOf<Rest, E, [..._Acc, First]>
   : never;
 
@@ -66,7 +66,7 @@ export type IndexOf<
   _Acc extends unknown[] = [],
 > = T extends readonly [infer First, ...infer Rest]
   ?
-      | (First extends E ? _Acc["length"] : never)
+      | (First extends E ? _Acc['length'] : never)
       | IndexOf<Rest, E, [..._Acc, First]>
   : never;
 
@@ -74,7 +74,10 @@ export type UniqueOrdered<
   T extends readonly string[],
   Seen extends string = never,
   Acc extends readonly string[] = [],
-> = T extends readonly [infer H extends string, ...infer Rest extends string[]]
+> = T extends readonly [
+  infer H extends string,
+  ...infer Rest extends string[],
+]
   ? H extends Seen
     ? UniqueOrdered<Rest, Seen, Acc>
     : UniqueOrdered<Rest, Seen | H, [...Acc, H]>
@@ -90,11 +93,13 @@ export type FirstKeyIsDuplicated<T extends readonly string[]> = [
 type BuildTuple<
   N extends number,
   T extends unknown[] = [],
-> = T["length"] extends N ? T : BuildTuple<N, [...T, unknown]>;
+> = T['length'] extends N ? T : BuildTuple<N, [...T, unknown]>;
 
 // The Subtract/Minus type
 type Minus<A extends number, B extends number> =
-  BuildTuple<A> extends [...BuildTuple<B>, ...infer R] ? R["length"] : never;
+  BuildTuple<A> extends [...BuildTuple<B>, ...infer R]
+    ? R['length']
+    : never;
 
 export type RemoveIndexOf<
   T extends readonly unknown[],
