@@ -10,8 +10,7 @@ expectTypeOf<IPR2>().toEqualTypeOf<false>();
 
 type _P1 = Pipeline<
   ['a', 'b'],
-  { a: (x: number) => string; b: (y: string) => boolean },
-  [x: number]
+  { a: { parameters: [number]; return: string }; b: boolean }
 >;
 type _P1Expected = ReturnType<_P1>;
 expectTypeOf<_P1Expected>().toEqualTypeOf<boolean>();
@@ -20,8 +19,11 @@ type P1 = ReturnType<_P1>;
 expectTypeOf<P1>().toEqualTypeOf<boolean>();
 
 const cr1 = createPipe('a', 'b')
-  .init((x: number) => x.toString())
-  .define('b', (y: string) => y.length > 2);
+  .type<{ a: { parameters: [number]; return: string }; b: boolean }>()
+  .define({
+    a: (x: number) => x.toString(),
+    b: (y: string) => y.length > 2,
+  });
 expectTypeOf(cr1).toBeFunction();
 expectTypeOf(cr1).toHaveProperty('define');
 
@@ -29,8 +31,8 @@ const result = cr1(123);
 expectTypeOf(result).toEqualTypeOf<boolean>();
 
 const constrainedPipe = createPipe('a', 'b')
-  .init((x: number) => x.toString())
-  .define('b', (y: string) => y.length);
+  .type<{ a: { parameters: [number]; return: string }; b: number }>()
+  .define({ a: (x: number) => x.toString(), b: (y: string) => y.length });
 
 type ConstrainedPipeType = typeof constrainedPipe;
 expectTypeOf<ReturnType<ConstrainedPipeType>>().toEqualTypeOf<number>();

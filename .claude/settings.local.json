@@ -1,5 +1,11 @@
 {
   "permissions": {
-    "allow": ["Bash(pnpm test:only)", "Bash(npm test *)"]
+    "allow": [
+      "Bash(pnpm test:only)",
+      "Bash(npm test *)",
+      "Bash(pnpm test *)",
+      "Bash(bash /workspaces/pipe-machine/.claude/skills/update-docs/scripts/check-version.sh)",
+      "Bash(bash /workspaces/pipe-machine/.claude/skills/update-docs/scripts/find-diff.sh)"
+    ]
   }
 }
