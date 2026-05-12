@@ -1,23 +1,23 @@
 # @bemedev/pipe-machine
 
-A strongly-typed pipe class library for function composition with advanced
-TypeScript support. Build fluent, composable function pipelines with
-complete type safety and inference.
+A strongly-typed pipe library for function composition with advanced
+TypeScript support. Build named, composable function pipelines with
+complete type safety and inference — in three explicit steps.
 
 ## Features
 
+- **3-Step Builder** - Separate type declaration from implementation for
+  maximum clarity: `createPipe → type → define`
 - **Strongly-Typed Pipes** - Full TypeScript type inference and validation
   throughout the pipeline
-- **Fluent Builder Pattern** - Chainable, readable API for composing
-  functions
 - **Named-Step Support** - Create named pipeline steps for better code
-  clarity
-- **Schema Validation** - Integration with @standard-schema/spec for
-  runtime validation
+  clarity and partial overrides
+- **Explicit Type Spec** - Declare input/output types before providing
+  implementations
 - **Async Support** - Handle both synchronous and asynchronous function
   pipelines
-- **Zero Dependencies** - Lightweight library with minimal external
-  dependencies
+- **Duplicate Key Support** - Reuse a step name to run the same function
+  multiple times in the pipeline
 
 ## Installation
 
@@ -32,30 +32,181 @@ pnpm add @bemedev/pipe-machine
 ```typescript
 import { createPipe } from '@bemedev/pipe-machine';
 
-// Create a simple pipe
-const pipe = createPipe<number>()
-  .define(x => x * 2)
-  .define(x => x + 10);
+const pipe = createPipe('double', 'add10')
+  .type<{
+    double: { parameters: [number]; return: number };
+    add10: number;
+  }>()
+  .define({
+    double: x => x * 2,
+    add10: x => x + 10,
+  });
 
-const result = pipe(5); // 20
+pipe(5); // 20
+```
+
+## The 3-Step Flow
+
+### Step 1 — `createPipe(...keys)`
+
+Declares the ordered list of named steps in the pipeline.
+
+```typescript
+const builder = createPipe('parse', 'validate', 'transform');
+```
+
+### Step 2 — `.type<TypeSpec>()`
+
+Declares the TypeScript types for the pipeline — no runtime argument, pure
+generic. Only the **first key** is required and must have the shape
+`{ parameters: [...], return: ... }`. All other keys are optional and
+specify just their **return type**. Unspecified keys default to **identity
+typing** (pass-through: same input and output type as the previous step).
+
+```typescript
+const typed = builder.type<{
+  parse: { parameters: [string]; return: number };
+  validate: number; // (n: number) => number
+  // 'transform' not listed → identity: (n: number) => number
+}>();
+```
+
+### Step 3 — `.define(impl)`
+
+Provides the function implementation for every unique key. Types are
+enforced by the spec from `.type<T>()`.
+
+```typescript
+const pipeline = typed.define({
+  parse: s => parseInt(s, 10),
+  validate: n => Math.abs(n),
+  transform: n => n * 100, // (number) => number — identity-typed
+});
+
+pipeline('−42'); // 4200
+```
+
+## Advanced Usage
+
+### Duplicate keys
+
+Repeat a key name to run that function more than once:
+
+```typescript
+const fn = createPipe('add1', 'double', 'add1', 'double', 'add1')
+  .type<{
+    add1: { parameters: [number]; return: number };
+    double: number;
+  }>()
+  .define({ add1: x => x + 1, double: x => x * 2 });
+
+fn(2); // ((((2+1)*2)+1)*2)+1 = 15
+```
+
+When the first key is duplicated, its `parameters` type is restricted to a
+single-element tuple to prevent ambiguous multi-arg signatures.
+
+### Multi-argument first step
+
+```typescript
+const fn = createPipe('hypot', 'double')
+  .type<{
+    hypot: { parameters: [number, number]; return: number };
+    double: number;
+  }>()
+  .define({
+    hypot: (a, b) => Math.hypot(a, b),
+    double: x => x * 2,
+  });
+
+fn(3, 4); // 10
+```
+
+### Async pipelines
+
+If any step returns a `Promise`, the entire pipeline becomes async:
+
+```typescript
+const fn = createPipe('fetch', 'parse')
+  .type<{
+    fetch: { parameters: [string]; return: Promise<string> };
+    parse: number;
+  }>()
+  .define({
+    fetch: async url => (await fetch(url)).text(),
+    parse: s => parseInt(s, 10),
+  });
+
+await fn('https://example.com/value'); // number
+```
+
+### Partial overrides
+
+After building a pipeline, create variants by overriding specific steps:
+
+```typescript
+const base = createPipe('add1', 'double')
+  .type<{
+    add1: { parameters: [number]; return: number };
+    double: number;
+  }>()
+  .define({ add1: x => x + 1, double: x => x * 2 });
+
+base(5); // 12
+
+const tripled = base.define({ double: x => x * 3 });
+tripled(5); // 18
 ```
 
 ## API
 
-### `createPipe<T>()`
+### `createPipe(...keys: string[]): PipeCreated<Keys>`
 
-Creates a new pipe builder for composing functions.
+Creates a pipeline builder with named steps. Throws if called with no keys.
+Returns an object with only a `.type<T>()` method.
 
-**Returns:** A pipe builder instance with chainable `define()` methods.
+### `.type<T extends TypeSpec<Keys>>(): PipeTyped<Keys, T>`
 
-### Exported Types
+Declares types for the pipeline. `T` is a pure TypeScript generic — no
+runtime argument. Returns an object with only a `.define(impl)` method.
 
-- `Pipe<T>` - The main pipe type for function composition
-- `Fn` - Function type definition
-- `Pipeline` - Pipeline execution type
-- `PipeBuilderType` - Builder pattern type
-- `MaybePromiseFn` - Type for both sync and async functions
-- `StandardSchemaV1` - Schema validation type
+**TypeSpec shape:**
+
+- First key (required): `{ parameters: any[]; return: any }`
+- Other keys (optional): `any` (the return type for that step)
+- Unspecified keys get identity typing from the previous step
+
+### `.define(impl: DefineImpl<Keys, T>): Pipeline<Keys, T>`
+
+Provides implementations for all unique keys. Returns the completed,
+callable pipeline.
+
+### `pipeline(...args): ReturnType`
+
+Calls the composed pipeline. Returns a `Promise` if any step is async,
+otherwise returns synchronously.
+
+### `pipeline.define(overrides: Partial<DefineImpl<Keys, T>>): Pipeline<Keys, T>`
+
+Creates a new pipeline with some steps replaced. Original pipeline is
+unchanged.
+
+## Exported Types
+
+| Type                           | Description                                       |
+| ------------------------------ | ------------------------------------------------- |
+| `Fn`                           | Function type                                     |
+| `First<T>`                     | First element of a tuple                          |
+| `Last<T>`                      | Last element of a tuple                           |
+| `ReturnTypes<TFns>`            | Maps function keys to their return types          |
+| `MergeFns<TFns, TPartial>`     | Merges override functions with base functions     |
+| `TypeSpec<Keys>`               | Constraint for the `.type<T>()` generic parameter |
+| `ResolvedReturnTypes<Keys, T>` | Computed return type map for all keys             |
+| `DefineImpl<Keys, T>`          | Shape of the `.define(impl)` argument             |
+| `PipeCreated<Keys>`            | Returned by `createPipe()`                        |
+| `PipeTyped<Keys, T>`           | Returned by `.type<T>()`                          |
+| `Pipeline<Keys, T>`            | Completed callable pipeline                       |
+| `MaybePromiseFn`               | Sync/async function type                          |
 
 ## Licence
 

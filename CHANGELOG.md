@@ -3,6 +3,37 @@
 <details>
 <summary>
 
+## **[1.0.0] - 12/05/2026** => _10:00_
+
+</summary>
+
+- **BREAKING** Remove `init()` method and positional `define(name, fn)` /
+  `define(fn)` overloads — replaced by the new 3-step API
+- **BREAKING** Remove type exports `PipeUntyped` and `PipeBuilderType`
+- Add new 3-step builder API: `createPipe(...keys) → .type<T>() →
+  .define(impl)`
+- Add identity typing: unspecified step keys default to pass-through typing
+  (same input/output type as the previous step)
+- Add optional `StandardSchemaV1` runtime argument to `.type()` for
+  schema-based type validation
+- Add new type exports: `PipeCreated`, `PipeTyped`, `DefineImpl`,
+  `ResolvedReturnTypes`, `TypeSpec`
+- Add `@bemedev/typings` integration for runtime type-spec construction
+- Add `@standard-schema/spec` as runtime dependency; add `@bemedev/typings`
+  as devDependency
+- Refactor `pipe.ts`: replace `PipeBuilderImpl` + `Pipe.create()` with
+  leaner `PipeTypedImpl` + direct `Pipe` constructor
+- Refactor `types.strict.ts`: remove unused utilities (`Next`,
+  `Dependances`, `FilterTuple`, `GetAtIndex`, `PreviousReturnType`)
+- <u>Test coverage **_100%_**</u>
+
+</details>
+
+<br/>
+
+<details>
+<summary>
+
 ## **[0.1.2] - 11/05/2026** => _15:51_
 
 </summary>
