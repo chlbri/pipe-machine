@@ -3,6 +3,22 @@
 <details>
 <summary>
 
+## **[1.0.2] - 12/05/2026** => _12:30_
+
+</summary>
+
+- Update `README.md`: ajout d'une note de compatibilité avertissant que la
+  version 2.x.x+ introduira des changements de types incompatibles avec
+  1.x.x
+- <u>Test coverage **_100%_**</u>
+
+</details>
+
+<br/>
+
+<details>
+<summary>
+
 ## **[1.0.1] - 12/05/2026** => _12:04_
 
 </summary>
