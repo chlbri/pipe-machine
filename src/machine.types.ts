@@ -1,12 +1,12 @@
-import type { StandardSchemaV1 } from '@standard-schema/spec';
-import type { GuardImpl } from './machine.helpers';
+import type { StandardSchemaV1 } from "@standard-schema/spec";
+import type { GuardImpl } from "./machine.helpers";
 import type {
   Config,
   ExtractActions,
   ExtractDelays,
   ExtractGuards,
-} from './new.type';
-import type { Describer, FromDescriber } from './types';
+} from "./config.type";
+import type { Describer, FromDescriber } from "./types";
 
 export type { Describer, FromDescriber };
 
@@ -81,8 +81,8 @@ export type MachineCreated<
     AllGuards,
     FirstKey | ConfigActions,
     AllDelays,
-    T['params'],
-    T['context']
+    T["params"],
+    T["context"]
   >;
 };
 
