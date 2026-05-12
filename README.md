@@ -208,29 +208,29 @@ field is returned.
 
 ## Exported Types
 
-| Type                           | Description                                            |
-| ------------------------------ | ------------------------------------------------------ |
-| `Fn`                           | Function type                                          |
-| `First<T>`                     | First element of a tuple                               |
-| `Last<T>`                      | Last element of a tuple                                |
-| `ReturnTypes<TFns>`            | Maps function keys to their return types               |
-| `MergeFns<TFns, TPartial>`     | Merges override functions with base functions          |
-| `TypeSpec<Keys>`               | Constraint for the `.type<T>()` generic parameter      |
-| `ResolvedReturnTypes<Keys, T>` | Computed return type map for all keys                  |
-| `DefineImpl<Keys, T>`          | Shape of the `.define(impl)` argument                  |
-| `PipeCreated<Keys>`            | Returned by `createPipe()`                             |
-| `PipeTyped<Keys, T>`           | Returned by `.type<T>()`                               |
-| `Pipeline<Keys, T>`            | Completed callable pipeline                            |
-| `MaybePromiseFn`               | Sync/async function type                               |
-| `IdentityFn<T>`                | Identity function type `(x: T) => T`                   |
-| `IsDuplicatedKey<T, K>`        | `true` if key `K` appears more than once in tuple `T`  |
-| `RemoveIndexOf<T, I>`          | Tuple `T` with the element at index `I` removed        |
-| `_PrevRM<Ordered, K, RM>`      | Awaited return type of the step immediately before `K` |
-| `StandardSchemaV1`             | Re-exported from `@standard-schema/spec`               |
+| Type                           | Description                                                        |
+| ------------------------------ | ------------------------------------------------------------------ |
+| `Fn`                           | Function type                                                      |
+| `First<T>`                     | First element of a tuple                                           |
+| `Last<T>`                      | Last element of a tuple                                            |
+| `ReturnTypes<TFns>`            | Maps function keys to their return types                           |
+| `MergeFns<TFns, TPartial>`     | Merges override functions with base functions                      |
+| `TypeSpec<Keys>`               | Constraint for the `.type<T>()` generic parameter                  |
+| `ResolvedReturnTypes<Keys, T>` | Computed return type map for all keys                              |
+| `DefineImpl<Keys, T>`          | Shape of the `.define(impl)` argument                              |
+| `PipeCreated<Keys>`            | Returned by `createPipe()`                                         |
+| `PipeTyped<Keys, T>`           | Returned by `.type<T>()`                                           |
+| `Pipeline<Keys, T>`            | Completed callable pipeline                                        |
+| `MaybePromiseFn`               | Sync/async function type                                           |
+| `IdentityFn<T>`                | Identity function type `(x: T) => T`                               |
+| `IsDuplicatedKey<T, K>`        | `true` if key `K` appears more than once in tuple `T`              |
+| `RemoveIndexOf<T, I>`          | Tuple `T` with the element at index `I` removed                    |
+| `_PrevRM<Ordered, K, RM>`      | Awaited return type of the step immediately before `K`             |
+| `StandardSchemaV1`             | Re-exported from `@standard-schema/spec`                           |
 | `Describer`                    | Step key type: `string` or `{ name: string; description: string }` |
-| `FromDescriber<D>`             | Extracts the string key name from a `Describer`        |
-| `FromDescribers<Keys>`         | Maps a `Describer[]` tuple to its string key tuple     |
-| `IndexesOfArray<T>`            | Union of valid numeric indices for tuple `T`           |
+| `FromDescriber<D>`             | Extracts the string key name from a `Describer`                    |
+| `FromDescribers<Keys>`         | Maps a `Describer[]` tuple to its string key tuple                 |
+| `IndexesOfArray<T>`            | Union of valid numeric indices for tuple `T`                       |
 
 ## Licence
 

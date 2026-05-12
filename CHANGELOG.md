@@ -7,10 +7,15 @@
 
 </summary>
 
-- Add `Describer` type — step keys can now be `string` or `{ name: string; description: string }`, enabling human-readable step descriptions
-- Add `descriptionOf(key)` method to `PipeCreated`, `PipeTyped`, and `Pipeline` — retrieve the description of a step at runtime
-- Add new type exports: `Describer`, `FromDescriber<D>`, `FromDescribers<Keys>`, `IndexesOfArray<T>`
-- Add `helpers.ts` with runtime helpers `fromDescriber` and `fromDescribers`
+- Add `Describer` type — step keys can now be `string` or
+  `{ name: string; description: string }`, enabling human-readable step
+  descriptions
+- Add `descriptionOf(key)` method to `PipeCreated`, `PipeTyped`, and
+  `Pipeline` — retrieve the description of a step at runtime
+- Add new type exports: `Describer`, `FromDescriber<D>`,
+  `FromDescribers<Keys>`, `IndexesOfArray<T>`
+- Add `helpers.ts` with runtime helpers `fromDescriber` and
+  `fromDescribers`
 - Fix CI script: include missing test command in the pipeline
 - <u>Test coverage **_100%_**</u>
 
