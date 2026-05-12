@@ -163,10 +163,12 @@ tripled(5); // 18
 
 ## API
 
-### `createPipe(...keys: string[]): PipeCreated<Keys>`
+### `createPipe(...keys: Describer[]): PipeCreated<Keys>`
 
-Creates a pipeline builder with named steps. Throws if called with no keys.
-Returns an object with only a `.type<T>()` method.
+Creates a pipeline builder with named steps. Each key can be a plain
+`string` or a `{ name: string; description: string }` object to attach a
+human-readable description. Throws if called with no keys. Returns an
+object with `.type<T>()` and `.descriptionOf(key)` methods.
 
 ### `.type<T extends TypeSpec<Keys>>(schema?: StandardSchemaV1): PipeTyped<Keys, T>`
 
@@ -197,6 +199,13 @@ otherwise returns synchronously.
 Creates a new pipeline with some steps replaced. Original pipeline is
 unchanged.
 
+### `.descriptionOf(key: string): string`
+
+Available on `PipeCreated`, `PipeTyped`, and `Pipeline`. Returns the
+description string for the given step key. For plain-string steps the key
+itself is returned; for `{ name, description }` steps the `description`
+field is returned.
+
 ## Exported Types
 
 | Type                           | Description                                            |
@@ -218,6 +227,10 @@ unchanged.
 | `RemoveIndexOf<T, I>`          | Tuple `T` with the element at index `I` removed        |
 | `_PrevRM<Ordered, K, RM>`      | Awaited return type of the step immediately before `K` |
 | `StandardSchemaV1`             | Re-exported from `@standard-schema/spec`               |
+| `Describer`                    | Step key type: `string` or `{ name: string; description: string }` |
+| `FromDescriber<D>`             | Extracts the string key name from a `Describer`        |
+| `FromDescribers<Keys>`         | Maps a `Describer[]` tuple to its string key tuple     |
+| `IndexesOfArray<T>`            | Union of valid numeric indices for tuple `T`           |
 
 ## Licence
 

@@ -9,6 +9,34 @@ import type {
   UniqueOrdered,
 } from "./types.strict";
 
+export type Describer =
+  | {
+      name: string;
+      description: string;
+    }
+  | string;
+
+export type FromDescriber<D extends Describer> = D extends string
+  ? D
+  : D extends { name: infer N extends string }
+    ? N
+    : never;
+
+export type IndexesOfArray<
+  T extends readonly unknown[],
+  S extends number[] = [],
+> = T["length"] extends S["length"]
+  ? S[number]
+  : IndexesOfArray<T, [S["length"], ...S]>;
+
+export type FromDescribers<Keys extends readonly Describer[]> =
+  Keys extends readonly [
+    infer D extends Describer,
+    ...infer Rest extends Describer[],
+  ]
+    ? [FromDescriber<D>, ...FromDescribers<Rest>]
+    : [];
+
 export type { Fn };
 
 export type First<T extends readonly unknown[]> = T extends readonly [
@@ -130,6 +158,7 @@ export interface PipeCreated<Keys extends readonly string[]> {
   type<T extends TypeSpec<Keys>>(
     args?: StandardSchemaV1<any, T>,
   ): PipeTyped<Keys, T>;
+  descriptionOf<K extends Keys[number]>(key: K): string;
 }
 
 // Returned by .type<T>() — has only .define(impl)
@@ -138,6 +167,7 @@ export interface PipeTyped<
   T extends TypeSpec<Keys>,
 > {
   define(impl: DefineImpl<Keys, T>): Pipeline<Keys, T>;
+  descriptionOf<K extends Keys[number]>(key: K): string;
 }
 
 // The completed callable pipeline with partial-override support.
@@ -154,4 +184,5 @@ export type Pipeline<
   RM
 > & {
   define(overrides: Partial<DefineImpl<Keys, T, RM>>): Pipeline<Keys, T, RM>;
+  descriptionOf<K extends Keys[number]>(key: K): string;
 };
