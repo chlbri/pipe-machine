@@ -1,5 +1,5 @@
-export { createPipe } from './pipe';
-export type { Pipe } from './pipe';
+export { createPipe } from "./pipe";
+export type { Pipe } from "./pipe";
 export type {
   DefineImpl,
   Fn,
@@ -12,5 +12,6 @@ export type {
   ResolvedReturnTypes,
   ReturnTypes,
   TypeSpec,
-} from './types';
-export type { MaybePromiseFn } from './types.return';
+} from "./types";
+export type { MaybePromiseFn } from "./types.return";
+export type { StandardSchemaV1 } from "@standard-schema/spec";

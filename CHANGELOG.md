@@ -10,17 +10,24 @@
 - **BREAKING** Remove `init()` method and positional `define(name, fn)` /
   `define(fn)` overloads — replaced by the new 3-step API
 - **BREAKING** Remove type exports `PipeUntyped` and `PipeBuilderType`
-- Add new 3-step builder API: `createPipe(...keys) → .type<T>() →
-  .define(impl)`
+- Add new 3-step builder API:
+  `createPipe(...keys) → .type<T>() → .define(impl)`
 - Add identity typing: unspecified step keys default to pass-through typing
   (same input/output type as the previous step)
 - Add optional `StandardSchemaV1` runtime argument to `.type()` for
   schema-based type validation
 - Add new type exports: `PipeCreated`, `PipeTyped`, `DefineImpl`,
   `ResolvedReturnTypes`, `TypeSpec`
+- Add new type exports: `IsDuplicatedKey<T, K>`, `RemoveIndexOf<T, I>`,
+  `IdentityFn<T>`, `_PrevRM` (désormais publics)
+- Add re-export of `StandardSchemaV1` from `@standard-schema/spec`
 - Add `@bemedev/typings` integration for runtime type-spec construction
 - Add `@standard-schema/spec` as runtime dependency; add `@bemedev/typings`
   as devDependency
+- Add `valibot ^1.4.0` and `zod ^4.4.3` as devDependencies (tests
+  d'intégration SchemaV1)
+- Enhance `DefineImpl`: les clés dupliquées imposent désormais le type
+  `IdentityFn<_PrevRM>` pour garantir la transparence de la valeur
 - Refactor `pipe.ts`: replace `PipeBuilderImpl` + `Pipe.create()` with
   leaner `PipeTypedImpl` + direct `Pipe` constructor
 - Refactor `types.strict.ts`: remove unused utilities (`Next`,

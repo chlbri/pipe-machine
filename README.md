@@ -30,16 +30,16 @@ pnpm add @bemedev/pipe-machine
 ## Quick Start
 
 ```typescript
-import { createPipe } from '@bemedev/pipe-machine';
+import { createPipe } from "@bemedev/pipe-machine";
 
-const pipe = createPipe('double', 'add10')
+const pipe = createPipe("double", "add10")
   .type<{
     double: { parameters: [number]; return: number };
     add10: number;
   }>()
   .define({
-    double: x => x * 2,
-    add10: x => x + 10,
+    double: (x) => x * 2,
+    add10: (x) => x + 10,
   });
 
 pipe(5); // 20
@@ -52,7 +52,7 @@ pipe(5); // 20
 Declares the ordered list of named steps in the pipeline.
 
 ```typescript
-const builder = createPipe('parse', 'validate', 'transform');
+const builder = createPipe("parse", "validate", "transform");
 ```
 
 ### Step 2 — `.type<TypeSpec>()`
@@ -78,12 +78,12 @@ enforced by the spec from `.type<T>()`.
 
 ```typescript
 const pipeline = typed.define({
-  parse: s => parseInt(s, 10),
-  validate: n => Math.abs(n),
-  transform: n => n * 100, // (number) => number — identity-typed
+  parse: (s) => parseInt(s, 10),
+  validate: (n) => Math.abs(n),
+  transform: (n) => n * 100, // (number) => number — identity-typed
 });
 
-pipeline('−42'); // 4200
+pipeline("−42"); // 4200
 ```
 
 ## Advanced Usage
@@ -93,30 +93,33 @@ pipeline('−42'); // 4200
 Repeat a key name to run that function more than once:
 
 ```typescript
-const fn = createPipe('add1', 'double', 'add1', 'double', 'add1')
+const fn = createPipe("add1", "double", "add1", "double", "add1")
   .type<{
     add1: { parameters: [number]; return: number };
     double: number;
   }>()
-  .define({ add1: x => x + 1, double: x => x * 2 });
+  .define({ add1: (x) => x + 1, double: (x) => x * 2 });
 
 fn(2); // ((((2+1)*2)+1)*2)+1 = 15
 ```
 
+When a key appears more than once, its `DefineImpl` slot is typed as
+`IdentityFn<PrevReturn>` — an identity function `(x: T) => T` — enforcing
+that a duplicated step passes its input value through unchanged in type.
 When the first key is duplicated, its `parameters` type is restricted to a
 single-element tuple to prevent ambiguous multi-arg signatures.
 
 ### Multi-argument first step
 
 ```typescript
-const fn = createPipe('hypot', 'double')
+const fn = createPipe("hypot", "double")
   .type<{
     hypot: { parameters: [number, number]; return: number };
     double: number;
   }>()
   .define({
     hypot: (a, b) => Math.hypot(a, b),
-    double: x => x * 2,
+    double: (x) => x * 2,
   });
 
 fn(3, 4); // 10
@@ -127,17 +130,17 @@ fn(3, 4); // 10
 If any step returns a `Promise`, the entire pipeline becomes async:
 
 ```typescript
-const fn = createPipe('fetch', 'parse')
+const fn = createPipe("fetch", "parse")
   .type<{
     fetch: { parameters: [string]; return: Promise<string> };
     parse: number;
   }>()
   .define({
-    fetch: async url => (await fetch(url)).text(),
-    parse: s => parseInt(s, 10),
+    fetch: async (url) => (await fetch(url)).text(),
+    parse: (s) => parseInt(s, 10),
   });
 
-await fn('https://example.com/value'); // number
+await fn("https://example.com/value"); // number
 ```
 
 ### Partial overrides
@@ -145,16 +148,16 @@ await fn('https://example.com/value'); // number
 After building a pipeline, create variants by overriding specific steps:
 
 ```typescript
-const base = createPipe('add1', 'double')
+const base = createPipe("add1", "double")
   .type<{
     add1: { parameters: [number]; return: number };
     double: number;
   }>()
-  .define({ add1: x => x + 1, double: x => x * 2 });
+  .define({ add1: (x) => x + 1, double: (x) => x * 2 });
 
 base(5); // 12
 
-const tripled = base.define({ double: x => x * 3 });
+const tripled = base.define({ double: (x) => x * 3 });
 tripled(5); // 18
 ```
 
@@ -165,10 +168,13 @@ tripled(5); // 18
 Creates a pipeline builder with named steps. Throws if called with no keys.
 Returns an object with only a `.type<T>()` method.
 
-### `.type<T extends TypeSpec<Keys>>(): PipeTyped<Keys, T>`
+### `.type<T extends TypeSpec<Keys>>(schema?: StandardSchemaV1): PipeTyped<Keys, T>`
 
-Declares types for the pipeline. `T` is a pure TypeScript generic — no
-runtime argument. Returns an object with only a `.define(impl)` method.
+Declares types for the pipeline. `T` is a pure TypeScript generic. An
+optional `StandardSchemaV1`-compatible schema (e.g. a `zod`, a
+`@bemedev/typings` object or `valibot` object) may be passed as a runtime
+argument for schema-based validation. Returns an object with only a
+`.define(impl)` method.
 
 **TypeSpec shape:**
 
@@ -193,20 +199,25 @@ unchanged.
 
 ## Exported Types
 
-| Type                           | Description                                       |
-| ------------------------------ | ------------------------------------------------- |
-| `Fn`                           | Function type                                     |
-| `First<T>`                     | First element of a tuple                          |
-| `Last<T>`                      | Last element of a tuple                           |
-| `ReturnTypes<TFns>`            | Maps function keys to their return types          |
-| `MergeFns<TFns, TPartial>`     | Merges override functions with base functions     |
-| `TypeSpec<Keys>`               | Constraint for the `.type<T>()` generic parameter |
-| `ResolvedReturnTypes<Keys, T>` | Computed return type map for all keys             |
-| `DefineImpl<Keys, T>`          | Shape of the `.define(impl)` argument             |
-| `PipeCreated<Keys>`            | Returned by `createPipe()`                        |
-| `PipeTyped<Keys, T>`           | Returned by `.type<T>()`                          |
-| `Pipeline<Keys, T>`            | Completed callable pipeline                       |
-| `MaybePromiseFn`               | Sync/async function type                          |
+| Type                           | Description                                            |
+| ------------------------------ | ------------------------------------------------------ |
+| `Fn`                           | Function type                                          |
+| `First<T>`                     | First element of a tuple                               |
+| `Last<T>`                      | Last element of a tuple                                |
+| `ReturnTypes<TFns>`            | Maps function keys to their return types               |
+| `MergeFns<TFns, TPartial>`     | Merges override functions with base functions          |
+| `TypeSpec<Keys>`               | Constraint for the `.type<T>()` generic parameter      |
+| `ResolvedReturnTypes<Keys, T>` | Computed return type map for all keys                  |
+| `DefineImpl<Keys, T>`          | Shape of the `.define(impl)` argument                  |
+| `PipeCreated<Keys>`            | Returned by `createPipe()`                             |
+| `PipeTyped<Keys, T>`           | Returned by `.type<T>()`                               |
+| `Pipeline<Keys, T>`            | Completed callable pipeline                            |
+| `MaybePromiseFn`               | Sync/async function type                               |
+| `IdentityFn<T>`                | Identity function type `(x: T) => T`                   |
+| `IsDuplicatedKey<T, K>`        | `true` if key `K` appears more than once in tuple `T`  |
+| `RemoveIndexOf<T, I>`          | Tuple `T` with the element at index `I` removed        |
+| `_PrevRM<Ordered, K, RM>`      | Awaited return type of the step immediately before `K` |
+| `StandardSchemaV1`             | Re-exported from `@standard-schema/spec`               |
 
 ## Licence
 

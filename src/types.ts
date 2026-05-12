@@ -1,12 +1,13 @@
-import type { Fn } from '@bemedev/pipe';
-import { StandardSchemaV1 } from '@standard-schema/spec';
-import type { MaybePromiseFn } from './types.return';
+import type { Fn } from "@bemedev/pipe";
+import { StandardSchemaV1 } from "@standard-schema/spec";
+import type { MaybePromiseFn } from "./types.return";
 import type {
   FirstKeyIsDuplicated,
   IndexOf,
+  IsDuplicatedKey,
   Previous,
   UniqueOrdered,
-} from './types.strict';
+} from "./types.strict";
 
 export type { Fn };
 
@@ -71,13 +72,7 @@ type _ResolveRT<
       : _ResolveRT<Rest, FirstKey, T, any, Acc & Record<H, any>>
     : T extends Record<H, infer R>
       ? _ResolveRT<Rest, FirstKey, T, Awaited<R>, Acc & Record<H, R>>
-      : _ResolveRT<
-          Rest,
-          FirstKey,
-          T,
-          PrevReturn,
-          Acc & Record<H, PrevReturn>
-        >
+      : _ResolveRT<Rest, FirstKey, T, PrevReturn, Acc & Record<H, PrevReturn>>
   : Acc;
 
 // Computes the resolved return type map for all unique keys in the pipeline.
@@ -98,7 +93,7 @@ export type ResolvedReturnTypes<
 
 // Looks up the Awaited return type of the key immediately before K.
 // Awaited is used because async steps emit resolved values to subsequent steps.
-type _PrevRM<
+export type _PrevRM<
   Ordered extends readonly string[],
   K extends string,
   RM extends Record<string, any>,
@@ -107,21 +102,27 @@ type _PrevRM<
     ? Awaited<RM[PK]>
     : never;
 
+export type IdentityFn<T> = (x: T) => T;
+
 // Shape of the record passed to .define(impl):
 // - First key: (...args: T[Keys[0]]['parameters']) => RM[Keys[0]]
 // - Other keys: (arg: RM[PrevKey]) => RM[K]
 export type DefineImpl<
   Keys extends readonly string[],
   T extends TypeSpec<Keys>,
-  RM extends Record<UniqueOrdered<Keys>[number], any> =
-    ResolvedReturnTypes<Keys, T>,
+  RM extends Record<UniqueOrdered<Keys>[number], any> = ResolvedReturnTypes<
+    Keys,
+    T
+  >,
   Ordered extends readonly string[] = UniqueOrdered<Keys>,
 > = {
   [K in Ordered[number]]: K extends Keys[0]
     ? T extends Record<K, { parameters: infer P extends any[] }>
       ? (...args: P) => RM[K]
       : (...args: any[]) => RM[K]
-    : (arg: _PrevRM<Ordered, K, RM>) => RM[K];
+    : IsDuplicatedKey<Keys, K> extends true
+      ? IdentityFn<_PrevRM<Keys, K, RM>>
+      : (arg: _PrevRM<Ordered, K, RM>) => RM[K];
 };
 
 // Returned by createPipe — has only .type<T>()
@@ -143,16 +144,14 @@ export interface PipeTyped<
 export type Pipeline<
   Keys extends readonly string[],
   T extends TypeSpec<Keys>,
-  RM extends Record<UniqueOrdered<Keys>[number], any> =
-    ResolvedReturnTypes<Keys, T>,
+  RM extends Record<UniqueOrdered<Keys>[number], any> = ResolvedReturnTypes<
+    Keys,
+    T
+  >,
 > = MaybePromiseFn<
-  T extends Record<Keys[0], { parameters: infer P extends any[] }>
-    ? P
-    : any[],
+  T extends Record<Keys[0], { parameters: infer P extends any[] }> ? P : any[],
   UniqueOrdered<Keys>,
   RM
 > & {
-  define(
-    overrides: Partial<DefineImpl<Keys, T, RM>>,
-  ): Pipeline<Keys, T, RM>;
+  define(overrides: Partial<DefineImpl<Keys, T, RM>>): Pipeline<Keys, T, RM>;
 };
