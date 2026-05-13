@@ -1,12 +1,12 @@
-import type { StandardSchemaV1 } from "@standard-schema/spec";
-import type { GuardImpl } from "./helpers";
+import type { StandardSchemaV1 } from '@standard-schema/spec';
+import type { GuardImpl } from './helpers';
 import type {
   Config,
   ExtractActions,
   ExtractDelays,
   ExtractGuards,
-} from "./types/config";
-import type { Describer, FromDescriber } from "./types/common";
+} from './types/config';
+import type { Describer, FromDescriber } from './types/common';
 
 export type { Describer, FromDescriber };
 
@@ -122,7 +122,7 @@ export interface MachineTyped<
     AllGuards,
     AllActions,
     AllDelays,
-    [AllDelays] extends [never] ? HasAsyncIn<Impl["actions"]> : true
+    [AllDelays] extends [never] ? HasAsyncIn<Impl['actions']> : true
   >;
 }
 
@@ -144,8 +144,8 @@ export type MachineCreated<
     AllGuards,
     FirstKey | ConfigActions,
     AllDelays,
-    T["params"],
-    T["context"]
+    T['params'],
+    T['context']
   >;
 };
 

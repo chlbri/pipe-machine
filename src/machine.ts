@@ -1,22 +1,22 @@
-import type { Config, Delayed } from "./types/config";
+import type { Config, Delayed } from './types/config';
 import {
   executeResolved,
   executeResolvedAsync,
   hasAsyncFns,
   resolveMany,
   fromDescriber,
-} from "./helpers";
+} from './helpers';
 import type {
   AllActionsFromConfigs,
   AllDelaysFromConfigs,
   AllGuardsFromConfigs,
   FromDescriber,
   MachineCreated,
-} from "./machine.types";
-import type { Describer } from "./types/common";
+} from './machine.types';
+import type { Describer } from './types/common';
 
 function configHasDelay(c: Config): c is Delayed {
-  return !Array.isArray(c) && typeof c === "object" && "delay" in c;
+  return !Array.isArray(c) && typeof c === 'object' && 'delay' in c;
 }
 
 class MachineTypedImpl {
@@ -49,13 +49,14 @@ class MachineTypedImpl {
           select(await asyncFn(...params));
 
       (asyncFn as any).define = (impl: any) => {
-        return new MachineTypedImpl(this.#firstDescriber, this.#configs).define(
-          {
-            actions: { ...this.#impl.actions, ...impl.actions },
-            guards: { ...this.#impl.guards, ...impl.guards },
-            delays: { ...this.#impl.delays, ...impl.delays },
-          },
-        );
+        return new MachineTypedImpl(
+          this.#firstDescriber,
+          this.#configs,
+        ).define({
+          actions: { ...this.#impl.actions, ...impl.actions },
+          guards: { ...this.#impl.guards, ...impl.guards },
+          delays: { ...this.#impl.delays, ...impl.delays },
+        });
       };
       return asyncFn;
     }
@@ -71,7 +72,10 @@ class MachineTypedImpl {
         select(syncFn(...params));
 
     (syncFn as any).define = (impl: any) => {
-      return new MachineTypedImpl(this.#firstDescriber, this.#configs).define({
+      return new MachineTypedImpl(
+        this.#firstDescriber,
+        this.#configs,
+      ).define({
         actions: { ...this.#impl.actions, ...impl.actions },
         guards: { ...this.#impl.guards, ...impl.guards },
         delays: { ...this.#impl.delays, ...impl.delays },
@@ -90,7 +94,8 @@ class MachineImpl {
     this.#configs = configs;
   }
 
-  type = () => new MachineTypedImpl(this.#firstDescriber, this.#configs) as any;
+  type = () =>
+    new MachineTypedImpl(this.#firstDescriber, this.#configs) as any;
 }
 
 export function createPipe<

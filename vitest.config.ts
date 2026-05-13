@@ -1,20 +1,20 @@
-import { aliasTs } from "@bemedev/dev-utils/vitest-alias";
-import { exclude } from "@bemedev/dev-utils/vitest-exclude";
-import { defineConfig } from "vitest/config";
-import tsconfig from "./tsconfig.json";
+import { aliasTs } from '@bemedev/dev-utils/vitest-alias';
+import { exclude } from '@bemedev/dev-utils/vitest-exclude';
+import { defineConfig } from 'vitest/config';
+import tsconfig from './tsconfig.json';
 
-const IS_VSCODE_VITEST_EXTENSION = process.env.VITEST_VSCODE === "true";
+const IS_VSCODE_VITEST_EXTENSION = process.env.VITEST_VSCODE === 'true';
 
 export default defineConfig({
   server: {
-    host: "0.0.0.0",
+    host: '0.0.0.0',
   },
   plugins: [
     aliasTs(tsconfig as any),
     exclude({
-      ignoreCoverageFiles: ["**/*.test-d.ts", "**/*.built.test.ts"],
+      ignoreCoverageFiles: ['**/*.test-d.ts', '**/*.built.test.ts'],
       ignoreTestFiles: IS_VSCODE_VITEST_EXTENSION
-        ? ["**/*.built.test.ts"]
+        ? ['**/*.built.test.ts']
         : undefined,
     }),
   ],
@@ -31,8 +31,8 @@ export default defineConfig({
     },
     coverage: {
       enabled: true,
-      reportsDirectory: ".coverage",
-      provider: "v8",
+      reportsDirectory: '.coverage',
+      provider: 'v8',
     },
   },
 });

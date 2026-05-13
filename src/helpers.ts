@@ -1,19 +1,21 @@
-import recursive from "@bemedev/boolean-recursive";
-import { decompose, recompose, type Decompose } from "@bemedev/decompose";
-import { sleep } from "@bemedev/sleep";
+import recursive from '@bemedev/boolean-recursive';
+import { decompose, recompose, type Decompose } from '@bemedev/decompose';
+import { sleep } from '@bemedev/sleep';
 import type {
   Condition,
   Config,
   Delayed,
   GuardAnd,
   GuardConfig,
-} from "./types/config";
-import { GUARD_TYPE } from "./constants";
+} from './types/config';
+import { GUARD_TYPE } from './constants';
 
-import type { Describer, FromDescriber } from "./types/common";
+import type { Describer, FromDescriber } from './types/common';
 
-export const fromDescriber = <D extends Describer>(d: D): FromDescriber<D> => {
-  const out: any = typeof d === "string" ? d : d.name;
+export const fromDescriber = <D extends Describer>(
+  d: D,
+): FromDescriber<D> => {
+  const out: any = typeof d === 'string' ? d : d.name;
   return out;
 };
 
@@ -25,14 +27,14 @@ type ToPreficate_F = <Context>(
 ) => (ctx: Context) => boolean;
 
 export const toPredicate: ToPreficate_F = (guardConfig, guardsMap) => {
-  if (typeof guardConfig === "string") {
+  if (typeof guardConfig === 'string') {
     const impl = guardsMap[guardConfig];
-    return typeof impl === "boolean" ? () => impl : impl;
+    return typeof impl === 'boolean' ? () => impl : impl;
   }
 
-  if ("name" in guardConfig) {
+  if ('name' in guardConfig) {
     const impl = guardsMap[guardConfig.name];
-    return typeof impl === "boolean" ? () => impl : impl;
+    return typeof impl === 'boolean' ? () => impl : impl;
   }
 
   if (GUARD_TYPE.and in guardConfig) {
@@ -42,10 +44,10 @@ export const toPredicate: ToPreficate_F = (guardConfig, guardsMap) => {
     return recursive(...preds);
   }
 
-  const preds = guardConfig[GUARD_TYPE.or].map((g) =>
+  const preds = guardConfig[GUARD_TYPE.or].map(g =>
     toPredicate(g, guardsMap),
   );
-  return (ctx) => preds.some((check) => check(ctx));
+  return ctx => preds.some(check => check(ctx));
 };
 
 export function toSoA<T>(v: T | T[] | readonly T[]): T[] {
@@ -54,8 +56,8 @@ export function toSoA<T>(v: T | T[] | readonly T[]): T[] {
 
 export type Assign_F = <
   T extends object,
-  D extends Decompose<T, { object: "both"; sep: "."; start: false }> =
-    Decompose<T, { object: "both"; sep: "."; start: false }>,
+  D extends Decompose<T, { object: 'both'; sep: '.'; start: false }> =
+    Decompose<T, { object: 'both'; sep: '.'; start: false }>,
   K extends keyof D & string = keyof D & string,
 >(
   key: K,
@@ -63,15 +65,15 @@ export type Assign_F = <
 ) => (ctx: T) => T;
 
 export const assign: Assign_F = (key, action) => {
-  return (ctx) => {
+  return ctx => {
     const value = action(ctx);
-    if (!key.includes(".") && !key.includes("[")) {
+    if (!key.includes('.') && !key.includes('[')) {
       return { ...ctx, [key]: value } as any;
     }
     const flat: Record<string, unknown> = decompose(ctx, {
-      object: "both",
+      object: 'both',
       start: false,
-      sep: ".",
+      sep: '.',
     }) as any;
     (flat as any)[key] = value;
     return recompose.low(flat);
@@ -79,42 +81,42 @@ export const assign: Assign_F = (key, action) => {
 };
 
 type ResolvedConfig =
-  | { tag: "action"; fn: (ctx: any) => any }
+  | { tag: 'action'; fn: (ctx: any) => any }
   | {
-      tag: "conditions";
+      tag: 'conditions';
       branches: Array<{
         pred: (ctx: any) => boolean;
         fns: ResolvedConfig[];
       }>;
     }
   | {
-      tag: "delay";
+      tag: 'delay';
       ms: number | ((ctx: any) => number);
       fns: ResolvedConfig[];
     };
 
 function isDescriber(config: Describer | Delayed): config is Describer {
-  return typeof config === "string" || !("delay" in config);
+  return typeof config === 'string' || !('delay' in config);
 }
 
 export const resolveMany = (
   configs: readonly Config[],
   impl: any,
 ): ResolvedConfig[] => {
-  return configs.map((c) => resolveOne(c, impl));
+  return configs.map(c => resolveOne(c, impl));
 };
 
 const resolveOne = (config: Config, impl: any): ResolvedConfig => {
   if (Array.isArray(config)) {
     return {
-      tag: "conditions",
-      branches: (config as readonly Condition[]).map((condition) => {
+      tag: 'conditions',
+      branches: (config as readonly Condition[]).map(condition => {
         const guards = toSoA(condition.guard);
-        const preds = guards.map((g) => toPredicate(g, impl.guards));
+        const preds = guards.map(g => toPredicate(g, impl.guards));
         const pred =
           preds.length === 1
             ? preds[0]
-            : (ctx: any) => preds.every((p) => p(ctx));
+            : (ctx: any) => preds.every(p => p(ctx));
         return { pred, fns: resolveMany(toSoA(condition.fn), impl) };
       }),
     };
@@ -122,25 +124,28 @@ const resolveOne = (config: Config, impl: any): ResolvedConfig => {
 
   if (isDescriber(config as Describer | Delayed)) {
     return {
-      tag: "action",
+      tag: 'action',
       fn: impl.actions[fromDescriber(config as Describer)],
     };
   }
 
   const delayed = config as Delayed;
   return {
-    tag: "delay",
+    tag: 'delay',
     ms: impl.delays[fromDescriber(delayed.delay)],
     fns: resolveMany(toSoA(delayed.fn), impl),
   };
 };
 
-export const executeResolved = (resolved: ResolvedConfig, ctx: any): any => {
-  if (resolved.tag === "action") return resolved.fn(ctx);
+export const executeResolved = (
+  resolved: ResolvedConfig,
+  ctx: any,
+): any => {
+  if (resolved.tag === 'action') return resolved.fn(ctx);
 
   const { branches } = resolved as Extract<
     ResolvedConfig,
-    { tag: "conditions" }
+    { tag: 'conditions' }
   >;
   for (const { pred, fns } of branches) {
     if (pred(ctx)) {
@@ -156,20 +161,22 @@ export const executeResolvedAsync = async (
   resolved: ResolvedConfig,
   ctx: any,
 ): Promise<any> => {
-  if (resolved.tag === "action") return await resolved.fn(ctx);
+  if (resolved.tag === 'action') return await resolved.fn(ctx);
 
-  if (resolved.tag === "conditions") {
+  if (resolved.tag === 'conditions') {
     for (const { pred, fns } of resolved.branches) {
       if (pred(ctx)) {
         let result = ctx;
-        for (const fn of fns) result = await executeResolvedAsync(fn, result);
+        for (const fn of fns)
+          result = await executeResolvedAsync(fn, result);
         return result;
       }
     }
     return ctx;
   }
 
-  const ms = typeof resolved.ms === "function" ? resolved.ms(ctx) : resolved.ms;
+  const ms =
+    typeof resolved.ms === 'function' ? resolved.ms(ctx) : resolved.ms;
   await sleep(ms);
   let result = ctx;
   for (const fn of resolved.fns)
@@ -180,7 +187,7 @@ export const executeResolvedAsync = async (
 export const isAsyncFunction = (
   fn: unknown,
 ): fn is (...args: any[]) => Promise<any> =>
-  (fn as any)?.constructor?.name === "AsyncFunction";
+  (fn as any)?.constructor?.name === 'AsyncFunction';
 
 export const hasAsyncFns = (fns: Record<string, unknown>): boolean => {
   return Object.values(fns).some(isAsyncFunction);

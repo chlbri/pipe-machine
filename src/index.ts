@@ -1,12 +1,12 @@
-export { createPipe } from "./machine";
-export { assign, toPredicate, toSoA } from "./helpers";
+export { createPipe } from './machine';
+export { assign, toPredicate, toSoA } from './helpers';
 export type {
   MachineCreated,
   MachineDefineInput,
   MachinePipeline,
   MachineTypeSpec,
   MachineTyped,
-} from "./machine.types";
+} from './machine.types';
 export type {
   Config,
   Condition,
@@ -20,5 +20,5 @@ export type {
   ReduceArray,
   ReduceGuards,
   SoA,
-} from "./types/config";
-export type { Describer, FromDescriber } from "./types/common";
+} from './types/config';
+export type { Describer, FromDescriber } from './types/common';

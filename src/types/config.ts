@@ -1,9 +1,9 @@
-import type { GUARD_TYPE } from "../constants";
-import type { Describer, FromDescriber } from "./common";
+import type { GUARD_TYPE } from '../constants';
+import type { Describer, FromDescriber } from './common';
 
 type gType = typeof GUARD_TYPE;
-type and = gType["and"];
-type or = gType["or"];
+type and = gType['and'];
+type or = gType['or'];
 
 export type SoA<T> = T | T[] | readonly T[];
 
@@ -46,9 +46,9 @@ export type ReduceGuards<T extends GuardConfig> = GuardConfig extends T
 type _ExtractGuards<T extends Config | Condition> = Config extends T
   ? string
   : T extends readonly (infer E extends Condition)[]
-    ? ReduceArray<E["guard"]> extends infer R1 extends GuardConfig
+    ? ReduceArray<E['guard']> extends infer R1 extends GuardConfig
       ? ReduceGuards<R1> extends infer R extends Describer
-        ? FromDescriber<R> | _ExtractGuards<ReduceArray<E["fn"]>>
+        ? FromDescriber<R> | _ExtractGuards<ReduceArray<E['fn']>>
         : never
       : never
     : never;
@@ -68,10 +68,10 @@ type _ExtractActions<T extends Config> = Config extends T
   ? string
   : T extends readonly (infer E extends Condition)[]
     ? E extends Condition
-      ? ExtractActionsFromFn<ReduceArray<E["fn"]>>
+      ? ExtractActionsFromFn<ReduceArray<E['fn']>>
       : never
     : T extends Delayed
-      ? ExtractActionsFromFn<ReduceArray<T["fn"]>>
+      ? ExtractActionsFromFn<ReduceArray<T['fn']>>
       : T extends Describer
         ? FromDescriber<T>
         : never;
@@ -90,9 +90,11 @@ type ExtractDelayFromFn<F> = Config extends F
 type _ExtractDelays<T extends Config> = Config extends T
   ? never
   : T extends readonly (infer E extends Condition)[]
-    ? ExtractDelayFromFn<ReduceArray<E["fn"]>>
+    ? ExtractDelayFromFn<ReduceArray<E['fn']>>
     : T extends Delayed
-      ? FromDescriber<T["delay"]> | ExtractDelayFromFn<ReduceArray<T["fn"]>>
+      ?
+          | FromDescriber<T['delay']>
+          | ExtractDelayFromFn<ReduceArray<T['fn']>>
       : never;
 
 export type ExtractDelays<T extends Config> =
