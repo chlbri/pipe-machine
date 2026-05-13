@@ -1,5 +1,13 @@
 # @bemedev/pipe-machine
 
+## N.B:
+
+NEXT VERSION: 2.x.x+ WILL CHANGE ALL THE TYPES, SO THIS README IS WRITTEN
+FOR THE CURRENT 1.x VERSION. SEE [CHANGELOG.md](CHANGELOG.md) FOR MORE
+DETAILS,
+
+THE 2.x.x+ VERSION WILL NO LONGER BE RETRO-COMPATIBLE WITH 1.x.x.
+
 A strongly-typed pipe library for function composition with advanced
 TypeScript support. Build named, composable function pipelines with
 complete type safety and inference — in three explicit steps.
