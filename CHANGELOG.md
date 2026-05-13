@@ -3,6 +3,26 @@
 <details>
 <summary>
 
+## **[2.0.1] - 13/05/2026** => _13:47_
+
+</summary>
+
+- Améliorer la gestion des actions et des délais dans la machine
+- Améliorer la gestion des actions asynchrones dans l'implémentation de la
+  machine
+- Supprimer `.devcontainer/devcontainer.json` de la distribution
+- Réorganiser la structure des types pour une meilleure maintenabilité
+- Harmoniser les guillemets et améliorer la cohérence du code
+- Améliorer la couverture des tests avec des tests supplémentaires
+- <u>Test coverage **_100%_**</u>
+
+</details>
+
+<br/>
+
+<details>
+<summary>
+
 ## **[2.0.0] - 13/05/2026** => _13:03_
 
 </summary>
