@@ -3,6 +3,39 @@
 <details>
 <summary>
 
+## **[2.0.0] - 13/05/2026** => _13:03_
+
+</summary>
+
+- **BREAKING** Rename type exports: `PipeCreated` → `MachineCreated`,
+  `PipeTyped` → `MachineTyped`, `Pipeline` → `MachinePipeline`. Update all
+  type imports in your code accordingly
+- **BREAKING** Remove type exports `Pipe`, `Fn`, `First`, `Last`,
+  `MergeFns`, `PipeBuilderType`, `PipeUntyped`, `ReturnTypes`,
+  `MaybePromiseFn`, `MaybePromiseFn` — replaced by new `Machine*` types and
+  configuration types
+- Add new helper functions: `assign`, `toPredicate`, `toSoA` for data
+  transformation and configuration
+- Add new config-related type exports: `Config`, `Condition`, `Delayed`,
+  `ExtractActions`, `ExtractDelays`, `ExtractGuards`, `GuardAnd`,
+  `GuardConfig`, `GuardOr`, `ReduceArray`, `ReduceGuards`, `SoA` — enables
+  type-safe machine configuration
+- Reorganize project structure: move types into `src/types/` subdirectory
+  (`config.ts`, `common.ts`, `strict.ts`) for better maintainability
+- Enhance async handling in machine implementation with improved delay
+  support
+- Remove `.devcontainer/devcontainer.json` — no longer needed in
+  distribution
+- Unify code style: standardize quotes and improve code consistency
+- <u>Test coverage **_100%_**</u>
+
+</details>
+
+<br/>
+
+<details>
+<summary>
+
 ## **[1.0.1] - 12/05/2026** => _12:04_
 
 </summary>

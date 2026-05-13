@@ -4,8 +4,10 @@
       "Bash(pnpm test:only)",
       "Bash(npm test *)",
       "Bash(pnpm test *)",
-      "Bash(bash /workspaces/pipe-machine/.claude/skills/update-docs/scripts/check-version.sh)",
-      "Bash(bash /workspaces/pipe-machine/.claude/skills/update-docs/scripts/find-diff.sh)"
+      "Bash(bash ./.claude/skills/update-docs/scripts/check-version.sh)",
+      "Bash(bash ./.claude/skills/update-docs/scripts/find-diff.sh)",
+      "Bash(node ./.claude/skills/update-docs/scripts/update-docs.mjs *)",
+      "Bash(node ./.claude/skills/check_spacing/check_spacing.mjs *)"
     ]
   }
 }

@@ -23,6 +23,7 @@ class MachineTypedImpl {
   readonly #firstDescriber: Describer;
   readonly #configs: readonly Config[];
   readonly #hasDelays: boolean;
+  #impl: any = {};
 
   constructor(firstDescriber: Describer, configs: readonly Config[]) {
     this.#firstDescriber = firstDescriber;
@@ -31,13 +32,14 @@ class MachineTypedImpl {
   }
 
   define = (impl: any) => {
+    this.#impl = impl;
     const firstKey = fromDescriber(this.#firstDescriber);
-    const resolved = resolveMany(this.#configs, impl);
-    const isAsync = this.#hasDelays || hasAsyncFns(impl.actions);
+    const resolved = resolveMany(this.#configs, this.#impl);
+    const isAsync = this.#hasDelays || hasAsyncFns(this.#impl.actions);
 
     if (isAsync) {
       const asyncFn = async (...params: any[]) => {
-        let ctx: any = await impl.actions[firstKey](...params);
+        let ctx: any = await this.#impl.actions[firstKey](...params);
         for (const r of resolved) ctx = await executeResolvedAsync(r, ctx);
         return ctx;
       };
@@ -45,11 +47,21 @@ class MachineTypedImpl {
         (select: any) =>
         async (...params: any[]) =>
           select(await asyncFn(...params));
+
+      (asyncFn as any).define = (impl: any) => {
+        return new MachineTypedImpl(this.#firstDescriber, this.#configs).define(
+          {
+            actions: { ...this.#impl.actions, ...impl.actions },
+            guards: { ...this.#impl.guards, ...impl.guards },
+            delays: { ...this.#impl.delays, ...impl.delays },
+          },
+        );
+      };
       return asyncFn;
     }
 
     const syncFn = (...params: any[]) => {
-      let ctx: any = impl.actions[firstKey](...params);
+      let ctx: any = this.#impl.actions[firstKey](...params);
       for (const r of resolved) ctx = executeResolved(r, ctx);
       return ctx;
     };
@@ -57,6 +69,14 @@ class MachineTypedImpl {
       (select: any) =>
       (...params: any[]) =>
         select(syncFn(...params));
+
+    (syncFn as any).define = (impl: any) => {
+      return new MachineTypedImpl(this.#firstDescriber, this.#configs).define({
+        actions: { ...this.#impl.actions, ...impl.actions },
+        guards: { ...this.#impl.guards, ...impl.guards },
+        delays: { ...this.#impl.delays, ...impl.delays },
+      });
+    };
     return syncFn;
   };
 }

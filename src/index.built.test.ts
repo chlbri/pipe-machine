@@ -214,23 +214,21 @@ describe("createPipe", () => {
     });
   });
 
-  describe("#05 => Delayed config", () => {
-    test("#01 => delayed fn is executed (async with sleep)", async () => {
-      const fn = createPipe("init", {
-        delay: "shortDelay",
-        fn: "increment",
-      })
-        .type<{ params: [number]; context: Ctx }>()
-        .define({
-          actions: {
-            init: (x) => ({ value: x }),
-            increment: (ctx) => ({ value: ctx.value + 1 }),
-          },
-          delays: { shortDelay: (ctx) => ctx.value + 10 },
-        });
+  test("#05 => Delayed config", async () => {
+    const fn = createPipe("init", {
+      delay: "shortDelay",
+      fn: "increment",
+    })
+      .type<{ params: [number]; context: Ctx }>()
+      .define({
+        actions: {
+          init: (x) => ({ value: x }),
+          increment: (ctx) => ({ value: ctx.value + 1 }),
+        },
+        delays: { shortDelay: (ctx) => ctx.value + 10 },
+      });
 
-      expect(await fn(7)).toStrictEqual({ value: 8 });
-    });
+    expect(await fn(7)).toStrictEqual({ value: 8 });
   });
 
   describe("#06 => assign helper", () => {
@@ -240,7 +238,7 @@ describe("createPipe", () => {
       expect(addOne(ctx)).toStrictEqual({ value: 5 });
     });
 
-    test("#03 => assign inside pipeline action", () => {
+    test("#02 => assign inside pipeline action", () => {
       const fn = createPipe("init", "bump")
         .type<{ params: [number]; context: Ctx }>()
         .define({
@@ -252,21 +250,38 @@ describe("createPipe", () => {
 
       expect(fn(1)).toStrictEqual({ value: 101 });
     });
-  });
 
-  describe("#07 => Describer objects (name + description)", () => {
-    test("#01 => object describer as first arg", () => {
-      const fn = createPipe({
-        name: "init",
-        description: "Initialize context",
-      })
+    test("#03 => action can be redefined in pipeline", () => {
+      const fn = createPipe("init", "bump")
         .type<{ params: [number]; context: Ctx }>()
         .define({
-          actions: { init: (x) => ({ value: x }) },
+          actions: {
+            init: (x) => ({ value: x }),
+            bump: assign("value", (ctx) => ctx.value + 100),
+          },
         });
 
-      expect(fn(9)).toStrictEqual({ value: 9 });
+      const fn2 = fn.define({
+        actions: {
+          bump: assign("value", (ctx) => ctx.value * 2),
+        },
+      });
+
+      expect(fn2(1)).toStrictEqual({ value: 2 });
     });
+  });
+
+  test("#07 => Describer objects (name + description)", () => {
+    const fn = createPipe({
+      name: "init",
+      description: "Initialize context",
+    })
+      .type<{ params: [number]; context: Ctx }>()
+      .define({
+        actions: { init: (x) => ({ value: x }) },
+      });
+
+    expect(fn(9)).toStrictEqual({ value: 9 });
   });
 
   describe("#08 => assign with level-3 nested paths", () => {
@@ -432,31 +447,62 @@ describe("createPipe", () => {
       expect(await fn(3)).toStrictEqual({ value: 7 }); // 3 * 2 + 1
     });
 
-    test("#03 => sync pipeline result is not a Promise", () => {
-      const fn = createPipe("init")
-        .type<{ params: [number]; context: Ctx }>()
-        .define({
-          actions: { init: (x) => ({ value: x }) },
-        });
+    describe("#03 => sync pipeline result is not a Promise", () => {
+      test("#01 => result is correct", () => {
+        const fn = createPipe("init")
+          .type<{ params: [number]; context: Ctx }>()
+          .define({
+            actions: { init: (x) => ({ value: x }) },
+          });
 
-      const result = fn(5);
-      expect(result).toStrictEqual({ value: 5 });
-      expect(result).not.toBeInstanceOf(Promise);
+        const result = fn(5);
+        expect(result).toStrictEqual({ value: 5 });
+      });
+
+      test("#02 => result is not a Promise", () => {
+        const fn = createPipe("init")
+          .type<{ params: [number]; context: Ctx }>()
+          .define({
+            actions: { init: (x) => ({ value: x }) },
+          });
+
+        const result = fn(5);
+        expect(result).not.toBeInstanceOf(Promise);
+      });
     });
 
-    test("#04 => async action with conditions", async () => {
-      const fn = createPipe("init", [{ guard: "isPositive", fn: "increment" }])
-        .type<{ params: [number]; context: Ctx }>()
-        .define({
-          actions: {
-            init: async (x) => ({ value: x }),
-            increment: async (ctx) => ({ value: ctx.value + 1 }),
-          },
-          guards: { isPositive: (ctx) => ctx.value > 0 },
-        });
+    describe("#04 => async action with conditions", () => {
+      test("#01 => positive value increments", async () => {
+        const fn = createPipe("init", [
+          { guard: "isPositive", fn: "increment" },
+        ])
+          .type<{ params: [number]; context: Ctx }>()
+          .define({
+            actions: {
+              init: async (x) => ({ value: x }),
+              increment: async (ctx) => ({ value: ctx.value + 1 }),
+            },
+            guards: { isPositive: (ctx) => ctx.value > 0 },
+          });
 
-      expect(await fn(5)).toStrictEqual({ value: 6 });
-      expect(await fn(-1)).toStrictEqual({ value: -1 });
+        expect(await fn(5)).toStrictEqual({ value: 6 });
+      });
+
+      test("#02 => negative value unchanged", async () => {
+        const fn = createPipe("init", [
+          { guard: "isPositive", fn: "increment" },
+        ])
+          .type<{ params: [number]; context: Ctx }>()
+          .define({
+            actions: {
+              init: async (x) => ({ value: x }),
+              increment: async (ctx) => ({ value: ctx.value + 1 }),
+            },
+            guards: { isPositive: (ctx) => ctx.value > 0 },
+          });
+
+        expect(await fn(-1)).toStrictEqual({ value: -1 });
+      });
     });
   });
 
