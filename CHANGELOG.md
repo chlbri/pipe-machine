@@ -3,17 +3,39 @@
 <details>
 <summary>
 
+## **[2.0.2] - 13/05/2026** => _20:18_
+
+</summary>
+
+- Refactor: unify code style (single quotes across all source files,
+  configs, and README examples)
+- Refactor: improve arrow function formatting (remove unnecessary
+  parentheses around single parameters)
+- Update CI/CD: simplify publication workflow by merging `beta` and
+  `canary` branches into `publish-NPM.yml` and remove `publish-beta.yml`
+  and `publish-canary.yml`
+- Add: `.devcontainer/devcontainer.json` configuration for Node.js 24
+  development environment with pnpm, Vitest UI port forwarding, and Ollama
+- Fix: add missing `typings()` schema in async pipeline test
+- <u>Test coverage **_100%_**</u>
+
+</details>
+
+<br/>
+
+<details>
+<summary>
+
 ## **[2.0.1] - 13/05/2026** => _13:47_
 
 </summary>
 
-- Améliorer la gestion des actions et des délais dans la machine
-- Améliorer la gestion des actions asynchrones dans l'implémentation de la
-  machine
-- Supprimer `.devcontainer/devcontainer.json` de la distribution
-- Réorganiser la structure des types pour une meilleure maintenabilité
-- Harmoniser les guillemets et améliorer la cohérence du code
-- Améliorer la couverture des tests avec des tests supplémentaires
+- Improve action and delay handling in the machine
+- Improve async action handling in machine implementation
+- Remove `.devcontainer/devcontainer.json` from distribution
+- Reorganize type structure for better maintainability
+- Standardize quotes and improve code consistency
+- Improve test coverage with additional tests
 - <u>Test coverage **_100%_**</u>
 
 </details>
