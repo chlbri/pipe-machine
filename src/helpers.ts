@@ -1,5 +1,6 @@
 import recursive from "@bemedev/boolean-recursive";
 import { decompose, recompose, type Decompose } from "@bemedev/decompose";
+import { sleep } from "@bemedev/sleep";
 import type {
   Condition,
   Config,
@@ -137,18 +138,50 @@ const resolveOne = (config: Config, impl: any): ResolvedConfig => {
 export const executeResolved = (resolved: ResolvedConfig, ctx: any): any => {
   if (resolved.tag === "action") return resolved.fn(ctx);
 
+  const { branches } = resolved as Extract<
+    ResolvedConfig,
+    { tag: "conditions" }
+  >;
+  for (const { pred, fns } of branches) {
+    if (pred(ctx)) {
+      let result = ctx;
+      for (const fn of fns) result = executeResolved(fn, result);
+      return result;
+    }
+  }
+  return ctx;
+};
+
+export const executeResolvedAsync = async (
+  resolved: ResolvedConfig,
+  ctx: any,
+): Promise<any> => {
+  if (resolved.tag === "action") return await resolved.fn(ctx);
+
   if (resolved.tag === "conditions") {
     for (const { pred, fns } of resolved.branches) {
       if (pred(ctx)) {
         let result = ctx;
-        for (const fn of fns) result = executeResolved(fn, result);
+        for (const fn of fns) result = await executeResolvedAsync(fn, result);
         return result;
       }
     }
     return ctx;
   }
 
+  const ms = typeof resolved.ms === "function" ? resolved.ms(ctx) : resolved.ms;
+  await sleep(ms);
   let result = ctx;
-  for (const fn of resolved.fns) result = executeResolved(fn, result);
+  for (const fn of resolved.fns)
+    result = await executeResolvedAsync(fn, result);
   return result;
+};
+
+export const isAsyncFunction = (
+  fn: unknown,
+): fn is (...args: any[]) => Promise<any> =>
+  (fn as any)?.constructor?.name === "AsyncFunction";
+
+export const hasAsyncFns = (fns: Record<string, unknown>): boolean => {
+  return Object.values(fns).some(isAsyncFunction);
 };

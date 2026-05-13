@@ -22,8 +22,8 @@ type ActionsImpl<
   Context,
 > = {
   [K in AllActions]: K extends FirstKey
-    ? (...params: Params) => Context
-    : (ctx: Context) => Context;
+    ? (...params: Params) => Context | Promise<Context>
+    : (ctx: Context) => Context | Promise<Context>;
 };
 
 export type MachineDefineInput<
@@ -33,15 +33,68 @@ export type MachineDefineInput<
   AllDelays extends string,
   Params extends any[],
   Context,
-> = {
-  actions: ActionsImpl<FirstKey, AllActions, Params, Context>;
-  guards: Record<AllGuards, GuardImpl<Context>>;
-  delays: Record<AllDelays, number | ((ctx: Context) => number)>;
-};
+> = { actions: ActionsImpl<FirstKey, AllActions, Params, Context> } & ([
+  AllGuards,
+] extends [never]
+  ? unknown
+  : { guards: Record<AllGuards, GuardImpl<Context>> }) &
+  ([AllDelays] extends [never]
+    ? unknown
+    : { delays: Record<AllDelays, number | ((ctx: Context) => number)> });
 
-export type MachinePipeline<Params extends any[], Context> = (
-  ...params: Params
-) => Context;
+type HasAsyncIn<T extends Record<string, (...args: any[]) => any>> =
+  true extends {
+    [K in keyof T]: ReturnType<T[K]> extends Promise<any> ? true : false;
+  }[keyof T]
+    ? true
+    : false;
+
+type DeepPartial<T> = T extends (...args: any[]) => any
+  ? T
+  : T extends any[] | readonly any[]
+    ? T
+    : T extends object
+      ? {
+          [P in keyof T]?: DeepPartial<T[P]>;
+        }
+      : T;
+
+export type MachinePipeline<
+  Params extends any[],
+  Context,
+  FirstKey extends string,
+  AllGuards extends string,
+  AllActions extends string,
+  AllDelays extends string,
+  IsAsync extends boolean = false,
+> = {
+  (...params: Params): IsAsync extends true ? Promise<Context> : Context;
+  build<T1>(
+    select: (ctx: Context) => T1,
+  ): IsAsync extends true
+    ? (...params: Params) => Promise<T1>
+    : (...params: Params) => T1;
+  define(
+    impl: DeepPartial<
+      MachineDefineInput<
+        FirstKey,
+        AllGuards,
+        AllActions,
+        AllDelays,
+        Params,
+        Context
+      >
+    >,
+  ): MachinePipeline<
+    Params,
+    Context,
+    FirstKey,
+    AllGuards,
+    AllActions,
+    AllDelays,
+    IsAsync
+  >;
+};
 
 export interface MachineTyped<
   FirstKey extends string,
@@ -51,8 +104,8 @@ export interface MachineTyped<
   Params extends any[],
   Context,
 > {
-  define(
-    impl: MachineDefineInput<
+  define<
+    Impl extends MachineDefineInput<
       FirstKey,
       AllGuards,
       AllActions,
@@ -60,7 +113,17 @@ export interface MachineTyped<
       Params,
       Context
     >,
-  ): MachinePipeline<Params, Context>;
+  >(
+    impl: Impl,
+  ): MachinePipeline<
+    Params,
+    Context,
+    FirstKey,
+    AllGuards,
+    AllActions,
+    AllDelays,
+    [AllDelays] extends [never] ? HasAsyncIn<Impl["actions"]> : true
+  >;
 }
 
 export type MachineCreated<

@@ -117,6 +117,7 @@
     "@bemedev/boolean-recursive": "^0.0.3",
     "@bemedev/decompose": "^2.2.0",
     "@bemedev/pipe": "1.6.0",
+    "@bemedev/sleep": "^0.2.2",
     "@standard-schema/spec": "^1.1.0"
   },
   "packageManager": "pnpm@11.1.1+sha512.d1fdf5f73c617b64fa1a56a81c3c8dfe0e966e33a6010aa256b517ae77be21d93e05affc0de1a83b0e4f29d569f68b446ae8f068cd7247c0bb3df0fb4d7bdf9a"
