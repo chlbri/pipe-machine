@@ -1,6 +1,6 @@
 export { createPipe } from "./machine";
-export { assign, toPredicate, toSoA } from "./machine.helpers";
-export type { GuardImpl } from "./machine.helpers";
+export { assign, toPredicate, toSoA } from "./helpers";
+export type { GuardImpl } from "./helpers";
 export type {
   MachineCreated,
   MachineDefineInput,

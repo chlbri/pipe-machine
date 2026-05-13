@@ -1,5 +1,5 @@
 import type { StandardSchemaV1 } from "@standard-schema/spec";
-import type { GuardImpl } from "./machine.helpers";
+import type { GuardImpl } from "./helpers";
 import type {
   Config,
   ExtractActions,
