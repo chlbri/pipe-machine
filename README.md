@@ -171,74 +171,61 @@ tripled(5); // 18
 
 ## API
 
-### `createPipe(...keys: Describer[]): PipeCreated<Keys>`
+### `createPipe(...keys: Describer[]): MachineCreated`
 
 Creates a pipeline builder with named steps. Each key can be a plain
 `string` or a `{ name: string; description: string }` object to attach a
 human-readable description. Throws if called with no keys. Returns an
-object with `.type<T>()` and `.descriptionOf(key)` methods.
+object with a `.type<T>()` method.
 
-### `.type<T extends TypeSpec<Keys>>(schema?: StandardSchemaV1): PipeTyped<Keys, T>`
+### `.type<T extends MachineTypeSpec>(schema?: StandardSchemaV1): MachineTyped`
 
-Declares types for the pipeline. `T` is a pure TypeScript generic. An
-optional `StandardSchemaV1`-compatible schema (e.g. a `zod`, a
-`@bemedev/typings` object or `valibot` object) may be passed as a runtime
-argument for schema-based validation. Returns an object with only a
-`.define(impl)` method.
+Declares types for the pipeline. `T` is a pure TypeScript generic with
+shape `{ params: any[]; context: Record<string, any> }`. An optional
+`StandardSchemaV1`-compatible schema (e.g. a `zod`, a `@bemedev/typings`
+object, or `valibot` object) may be passed as a runtime argument for
+schema-based validation. Returns an object with only a `.define(impl)`
+method.
 
-**TypeSpec shape:**
+### `.define(impl: MachineDefineInput): MachinePipeline`
 
-- First key (required): `{ parameters: any[]; return: any }`
-- Other keys (optional): `any` (the return type for that step)
-- Unspecified keys get identity typing from the previous step
+Provides implementations for actions and configuration. Returns the
+completed, callable pipeline.
 
-### `.define(impl: DefineImpl<Keys, T>): Pipeline<Keys, T>`
-
-Provides implementations for all unique keys. Returns the completed,
-callable pipeline.
-
-### `pipeline(...args): ReturnType`
+### `pipeline(...params): Context | Promise<Context>`
 
 Calls the composed pipeline. Returns a `Promise` if any step is async,
-otherwise returns synchronously.
+otherwise returns synchronously. The return type matches the `context` type
+from the `MachineTypeSpec`.
 
-### `pipeline.define(overrides: Partial<DefineImpl<Keys, T>>): Pipeline<Keys, T>`
+### `pipeline.define(overrides: Partial<MachineDefineInput>): MachinePipeline`
 
-Creates a new pipeline with some steps replaced. Original pipeline is
-unchanged.
+Creates a new pipeline with some actions or guards replaced. Original
+pipeline is unchanged.
 
-### `.descriptionOf(key: string): string`
+### `pipeline.build<T>(select: (ctx: Context) => T): (params) => T`
 
-Available on `PipeCreated`, `PipeTyped`, and `Pipeline`. Returns the
-description string for the given step key. For plain-string steps the key
-itself is returned; for `{ name, description }` steps the `description`
-field is returned.
+Transforms the output of the pipeline using a selector function.
 
 ## Exported Types
 
-| Type                           | Description                                                        |
-| ------------------------------ | ------------------------------------------------------------------ |
-| `Fn`                           | Function type                                                      |
-| `First<T>`                     | First element of a tuple                                           |
-| `Last<T>`                      | Last element of a tuple                                            |
-| `ReturnTypes<TFns>`            | Maps function keys to their return types                           |
-| `MergeFns<TFns, TPartial>`     | Merges override functions with base functions                      |
-| `TypeSpec<Keys>`               | Constraint for the `.type<T>()` generic parameter                  |
-| `ResolvedReturnTypes<Keys, T>` | Computed return type map for all keys                              |
-| `DefineImpl<Keys, T>`          | Shape of the `.define(impl)` argument                              |
-| `PipeCreated<Keys>`            | Returned by `createPipe()`                                         |
-| `PipeTyped<Keys, T>`           | Returned by `.type<T>()`                                           |
-| `Pipeline<Keys, T>`            | Completed callable pipeline                                        |
-| `MaybePromiseFn`               | Sync/async function type                                           |
-| `IdentityFn<T>`                | Identity function type `(x: T) => T`                               |
-| `IsDuplicatedKey<T, K>`        | `true` if key `K` appears more than once in tuple `T`              |
-| `RemoveIndexOf<T, I>`          | Tuple `T` with the element at index `I` removed                    |
-| `_PrevRM<Ordered, K, RM>`      | Awaited return type of the step immediately before `K`             |
-| `StandardSchemaV1`             | Re-exported from `@standard-schema/spec`                           |
-| `Describer`                    | Step key type: `string` or `{ name: string; description: string }` |
-| `FromDescriber<D>`             | Extracts the string key name from a `Describer`                    |
-| `FromDescribers<Keys>`         | Maps a `Describer[]` tuple to its string key tuple                 |
-| `IndexesOfArray<T>`            | Union of valid numeric indices for tuple `T`                       |
+| Type                 | Description                                                        |
+| -------------------- | ------------------------------------------------------------------ |
+| `MachineCreated`     | Returned by `createPipe()`                                         |
+| `MachineTyped`       | Returned by `.type<T>()`                                           |
+| `MachinePipeline`    | Completed callable pipeline                                        |
+| `MachineTypeSpec`    | Type spec shape: `{ params: any[]; context: Record<string, any> }` |
+| `MachineDefineInput` | Shape of the `.define(impl)` argument                              |
+| `Describer`          | Step key type: `string` or `{ name: string; description: string }` |
+| `FromDescriber<D>`   | Extracts the string key name from a `Describer`                    |
+| `Config`             | Configuration object shape for guards and delays                   |
+| `Condition`          | Guard condition type                                               |
+| `Delayed`            | Delayed action configuration with delay timing                     |
+| `GuardConfig`        | Shape for guard configuration                                      |
+| `ExtractActions<C>`  | Extracts action names from a config                                |
+| `ExtractGuards<C>`   | Extracts guard names from a config                                 |
+| `ExtractDelays<C>`   | Extracts delay names from a config                                 |
+| `SoA`                | Struct-of-Arrays utility type                                      |
 
 ## Licence
 

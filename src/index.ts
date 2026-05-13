@@ -1,18 +1,24 @@
-export { createPipe } from './pipe';
-export type { Pipe } from './pipe';
+export { createPipe } from "./machine";
+export { assign, toPredicate, toSoA } from "./helpers";
 export type {
-  DefineImpl,
-  Fn,
-  First,
-  Last,
-  MergeFns,
-  Pipeline,
-  PipeCreated,
-  PipeTyped,
-  ResolvedReturnTypes,
-  ReturnTypes,
-  TypeSpec,
-  Describer,
-} from './types';
-export type { MaybePromiseFn } from './types.return';
-export type { StandardSchemaV1 } from '@standard-schema/spec';
+  MachineCreated,
+  MachineDefineInput,
+  MachinePipeline,
+  MachineTypeSpec,
+  MachineTyped,
+} from "./machine.types";
+export type {
+  Config,
+  Condition,
+  Delayed,
+  ExtractActions,
+  ExtractDelays,
+  ExtractGuards,
+  GuardAnd,
+  GuardConfig,
+  GuardOr,
+  ReduceArray,
+  ReduceGuards,
+  SoA,
+} from "./types/config";
+export type { Describer, FromDescriber } from "./types/common";

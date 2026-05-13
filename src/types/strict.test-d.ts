@@ -1,12 +1,10 @@
-import { createPipe } from "./pipe";
 import type {
   FirstIndexOf,
   IndexOf,
   IsDuplicatedKey,
   Previous,
   RemoveIndexOf,
-} from "./types.strict";
-import { type as typings } from "@bemedev/typings";
+} from "./strict";
 
 type _Pr = ["a", "b", "c", "d", "e"];
 expectTypeOf<Previous<_Pr, 0>>().toEqualTypeOf<never>();
@@ -47,46 +45,6 @@ expectTypeOf<IndexOf<_IdxOf2, string>>().toEqualTypeOf<0 | 1 | 4 | 6>();
 expectTypeOf<FirstIndexOf<_IdxOf2, string>>().toEqualTypeOf<0>();
 expectTypeOf<IndexOf<_IdxOf2, Date>>().toEqualTypeOf<5>();
 expectTypeOf<IndexOf<_IdxOf2, number>>().toEqualTypeOf<never>();
-
-// @ts-expect-error --- no multiple args allowed in first step when keys are duplicated
-createPipe("add1", "double", "add1", "double", "add1").type<{
-  add1: { parameters: [number, number]; return: number };
-  double: number;
-}>();
-createPipe("add1", "double", "add1", "double", "add1").type(
-  // @ts-expect-error --- no multiple args allowed in first step when keys are duplicated
-  typings(({ tuple }) => ({
-    add1: {
-      parameters: tuple("number", "number"),
-      return: "number",
-    },
-  })),
-);
-
-createPipe("add1", "double", "add1", "double", "add1").type<{
-  add1: { parameters: [number]; return: number };
-  double: number;
-}>();
-
-createPipe("add1", "double", "add1", "double", "add1").type<{
-  add1: { parameters: [number]; return: number };
-  double: number;
-}>(
-  typings(({ tuple }) => ({
-    add1: {
-      parameters: tuple("number"),
-      return: "number",
-    },
-    double: "number",
-  })),
-);
-
-createPipe("add1", "double", "add1", "double", "add1").type(
-  // @ts-expect-error --- first key missing
-  typings({
-    double: "number",
-  }),
-);
 
 type RI1 = RemoveIndexOf<["a", "b", "c", "d", "e"], 2>; // ['a', 'b', 'd', 'e']
 expectTypeOf<RI1>().toEqualTypeOf<["a", "b", "d", "e"]>();
