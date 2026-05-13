@@ -5,8 +5,8 @@ import type {
   ExtractActions,
   ExtractDelays,
   ExtractGuards,
-} from "./config.type";
-import type { Describer, FromDescriber } from "./types";
+} from "./types/config";
+import type { Describer, FromDescriber } from "./types/common";
 
 export type { Describer, FromDescriber };
 

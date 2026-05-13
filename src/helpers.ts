@@ -1,15 +1,15 @@
 import recursive from "@bemedev/boolean-recursive";
-import { decompose, recompose } from "@bemedev/decompose";
+import { decompose, recompose, type Decompose } from "@bemedev/decompose";
 import type {
   Condition,
   Config,
   Delayed,
   GuardAnd,
   GuardConfig,
-} from "./config.type";
+} from "./types/config";
 import { GUARD_TYPE } from "./constants";
 
-import type { Describer, FromDescriber } from "./types";
+import type { Describer, FromDescriber } from "./types/common";
 
 export const fromDescriber = <D extends Describer>(d: D): FromDescriber<D> => {
   const out: any = typeof d === "string" ? d : d.name;
@@ -51,7 +51,12 @@ export function toSoA<T>(v: T | T[] | readonly T[]): T[] {
   return Array.isArray(v) ? [...v] : [v as T];
 }
 
-export type Assign_F = <T extends object, K extends string>(
+export type Assign_F = <
+  T extends object,
+  D extends Decompose<T, { object: "both"; sep: "."; start: false }> =
+    Decompose<T, { object: "both"; sep: "."; start: false }>,
+  K extends keyof D & string = keyof D & string,
+>(
   key: K,
   action: (arg: T) => any,
 ) => (ctx: T) => T;
@@ -62,8 +67,12 @@ export const assign: Assign_F = (key, action) => {
     if (!key.includes(".") && !key.includes("[")) {
       return { ...ctx, [key]: value } as any;
     }
-    const flat: Record<string, unknown> = decompose(ctx) as any;
-    flat[key] = value;
+    const flat: Record<string, unknown> = decompose(ctx, {
+      object: "both",
+      start: false,
+      sep: ".",
+    }) as any;
+    (flat as any)[key] = value;
     return recompose.low(flat);
   };
 };
@@ -87,7 +96,7 @@ function isDescriber(config: Describer | Delayed): config is Describer {
   return typeof config === "string" || !("delay" in config);
 }
 
-export const resolveConfigs = (
+export const resolveMany = (
   configs: readonly Config[],
   impl: any,
 ): ResolvedConfig[] => {
@@ -99,13 +108,13 @@ const resolveOne = (config: Config, impl: any): ResolvedConfig => {
     return {
       tag: "conditions",
       branches: (config as readonly Condition[]).map((condition) => {
-        const guards = toSoA(condition.cond);
+        const guards = toSoA(condition.guard);
         const preds = guards.map((g) => toPredicate(g, impl.guards));
         const pred =
           preds.length === 1
             ? preds[0]
             : (ctx: any) => preds.every((p) => p(ctx));
-        return { pred, fns: resolveConfigs(toSoA(condition.fn), impl) };
+        return { pred, fns: resolveMany(toSoA(condition.fn), impl) };
       }),
     };
   }
@@ -121,7 +130,7 @@ const resolveOne = (config: Config, impl: any): ResolvedConfig => {
   return {
     tag: "delay",
     ms: impl.delays[fromDescriber(delayed.delay)],
-    fns: resolveConfigs(toSoA(delayed.fn), impl),
+    fns: resolveMany(toSoA(delayed.fn), impl),
   };
 };
 

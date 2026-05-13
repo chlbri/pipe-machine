@@ -1,5 +1,5 @@
-import type { GUARD_TYPE } from "./constants";
-import type { Describer, FromDescriber } from "./types";
+import type { GUARD_TYPE } from "../constants";
+import type { Describer, FromDescriber } from "./common";
 
 type gType = typeof GUARD_TYPE;
 type and = gType["and"];
@@ -20,7 +20,7 @@ export type GuardOr = {
 };
 
 export type Condition = {
-  cond: SoA<GuardConfig>;
+  guard: SoA<GuardConfig>;
   fn: SoA<Config>;
   description?: string;
 };
@@ -46,7 +46,7 @@ export type ReduceGuards<T extends GuardConfig> = GuardConfig extends T
 type _ExtractGuards<T extends Config | Condition> = Config extends T
   ? string
   : T extends readonly (infer E extends Condition)[]
-    ? ReduceArray<E["cond"]> extends infer R1 extends GuardConfig
+    ? ReduceArray<E["guard"]> extends infer R1 extends GuardConfig
       ? ReduceGuards<R1> extends infer R extends Describer
         ? FromDescriber<R> | _ExtractGuards<ReduceArray<E["fn"]>>
         : never

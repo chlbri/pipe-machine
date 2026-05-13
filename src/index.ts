@@ -1,6 +1,5 @@
 export { createPipe } from "./machine";
 export { assign, toPredicate, toSoA } from "./helpers";
-export type { GuardImpl } from "./helpers";
 export type {
   MachineCreated,
   MachineDefineInput,
@@ -21,5 +20,5 @@ export type {
   ReduceArray,
   ReduceGuards,
   SoA,
-} from "./config.type";
-export type { Describer, FromDescriber } from "./types";
+} from "./types/config";
+export type { Describer, FromDescriber } from "./types/common";

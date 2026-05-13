@@ -1,14 +1,26 @@
-import { assign, createPipe } from "./index";
+import type { assign as _assign, createPipe as _createPipe } from "./index";
 import { type as typings } from "@bemedev/typings";
 import * as v from "valibot";
 import * as z from "zod";
+import { customImport } from "@bemedev/dev-utils/build-tests";
 
 type Ctx = { value: number };
+
+let createPipe: typeof _createPipe;
+let assign: typeof _assign;
+
+beforeAll(() =>
+  customImport({
+    fn: (mod) => {
+      createPipe = mod.createPipe;
+      assign = mod.assign;
+    },
+  }),
+);
 
 describe("createPipe", () => {
   describe("#01 => entry-only pipeline", () => {
     test("#01 => entry action produces context from params", () => {
-      console.log("env", process.env);
       const fn = createPipe("init")
         .type(
           typings(({ tuple }) => ({

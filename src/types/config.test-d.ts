@@ -1,17 +1,13 @@
-import type { AllGuardsFromConfigs } from "./machine.types";
-import type {
-  ExtractActions,
-  ExtractDelays,
-  ExtractGuards,
-} from "./config.type";
+import type { AllGuardsFromConfigs } from "../machine.types";
+import type { ExtractActions, ExtractDelays, ExtractGuards } from "./config";
 
 type _PipeArg1 = [
   {
-    cond: "guard1";
+    guard: "guard1";
     fn: "fn1";
   },
   {
-    cond: {
+    guard: {
       and: [
         "guard2",
         {
@@ -31,19 +27,19 @@ type _PipeArg1 = [
 
       [
         {
-          cond: "guard5";
+          guard: "guard5";
           fn: "fn3";
         },
 
         {
-          cond: { name: "guard6"; description: "guard6 description" };
+          guard: { name: "guard6"; description: "guard6 description" };
           fn: {
             delay: "delay2";
             fn: "fn4";
           };
         },
         {
-          cond: "guard4";
+          guard: "guard4";
           fn: "fn5";
         },
       ],

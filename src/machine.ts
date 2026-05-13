@@ -1,5 +1,5 @@
-import type { Config } from "./config.type";
-import { executeResolved, resolveConfigs, fromDescriber } from "./helpers";
+import type { Config } from "./types/config";
+import { executeResolved, resolveMany, fromDescriber } from "./helpers";
 import type {
   AllActionsFromConfigs,
   AllDelaysFromConfigs,
@@ -7,7 +7,7 @@ import type {
   FromDescriber,
   MachineCreated,
 } from "./machine.types";
-import type { Describer } from "./types";
+import type { Describer } from "./types/common";
 
 class MachineTypedImpl {
   readonly #firstDescriber: Describer;
@@ -20,7 +20,7 @@ class MachineTypedImpl {
 
   define = (impl: { actions: any; guards: any; delays: any }) => {
     const firstKey = fromDescriber(this.#firstDescriber);
-    const resolved = resolveConfigs(this.#configs, impl);
+    const resolved = resolveMany(this.#configs, impl);
 
     return (...params: any[]) => {
       let ctx: any = impl.actions[firstKey](...params);
