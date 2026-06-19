@@ -47,11 +47,13 @@
     "node": ">=24"
   },
   "scripts": {
+    "pnpm:devPreinstall": "node -e \"const fs=require('fs'); const pkg=JSON.parse(fs.readFileSync('./package.json')); const version=require('child_process').execSync('pnpm -v').toString().trim(); pkg.packageManager='pnpm@' + version; fs.writeFileSync('./package.json', JSON.stringify(pkg, null, 2) + '\\n');\"",
     "_preconfig": "chmod +x .husky/commit-msg",
     "build": "pnpm run rm:lib && pnpm run rolldown",
-    "ci": "CI_START=$(date +%s) && pnpm run config && pnpm run lint && pnpm run test && pnpm run p-q && echo \"\n✅ CI takes $(($(date +%s) - CI_START))s\n\"",
+    "_ci": "pnpm run config && pnpm run lint && pnpm run test",
+    "ci": "CI_START=$(date +%s) && pnpm run _ci && echo \"\n✅ CI takes $(($(date +%s) - CI_START))s\n\"",
     "ci:off": "CI_START=$(date +%s) && pnpm run config:off && pnpm run lint && pnpm run test && pnpm run p-q && echo \"\n✅ CI takes $(($(date +%s) - CI_START))s\n\"",
-    "ci:admin": "pnpm run rm && pnpm run upgrade:fast && pnpm run ci",
+    "ci:admin": "CI_START=$(date +%s) && pnpm run rm && pnpm run upgrade:fast && pnpm run _ci && pnpm run p-q && echo \"\n✅ CI ADMIN takes $(($(date +%s) - CI_START))s\n\"",
     "config": "pnpm install",
     "config:off": "pnpm run config --offline",
     "_lint": "oxlint",
@@ -91,34 +93,34 @@
     }
   ],
   "devDependencies": {
-    "@bemedev/dev-utils": "^0.6.11",
-    "@bemedev/typings": "^0.5.5",
+    "@bemedev/dev-utils": "^0.8.0",
+    "@bemedev/typings": "^1.2.0",
     "@size-limit/file": "^12.1.0",
-    "@types/node": "^25.7.0",
-    "@vitest/coverage-v8": "^4.1.6",
-    "@vitest/ui": "4.1.6",
+    "@types/node": "^26.0.0",
+    "@vitest/coverage-v8": "^4.1.9",
+    "@vitest/ui": "4.1.9",
     "glob": "^13.0.6",
     "globals": "^17.6.0",
     "husky": "^9.1.7",
     "onchange": "^7.1.0",
-    "oxfmt": "^0.49.0",
-    "oxlint": "^1.64.0",
+    "oxfmt": "^0.55.0",
+    "oxlint": "^1.70.0",
     "pretty-quick": "^4.2.2",
-    "rolldown": "1.0.0",
+    "rolldown": "1.1.2",
     "size-limit": "^12.1.0",
     "tslib": "^2.8.1",
-    "tsx": "^4.21.0",
+    "tsx": "^4.22.4",
     "typescript": "^6.0.3",
-    "valibot": "^1.4.0",
-    "vitest": "^4.1.6",
+    "valibot": "^1.4.1",
+    "vitest": "^4.1.9",
     "zod": "^4.4.3"
   },
   "dependencies": {
     "@bemedev/boolean-recursive": "^0.0.3",
     "@bemedev/decompose": "^2.2.0",
-    "@bemedev/pipe": "1.6.0",
+    "@bemedev/pipe": "1.6.1",
     "@bemedev/sleep": "^0.2.2",
     "@standard-schema/spec": "^1.1.0"
   },
-  "packageManager": "pnpm@11.1.1+sha512.d1fdf5f73c617b64fa1a56a81c3c8dfe0e966e33a6010aa256b517ae77be21d93e05affc0de1a83b0e4f29d569f68b446ae8f068cd7247c0bb3df0fb4d7bdf9a"
+  "packageManager": "pnpm@11.7.0"
 }

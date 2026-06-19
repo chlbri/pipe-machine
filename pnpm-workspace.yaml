@@ -1,2 +1,6 @@
 allowBuilds:
   esbuild: true
+
+nodeLinker: hoisted
+
+minimumReleaseAge: 300
