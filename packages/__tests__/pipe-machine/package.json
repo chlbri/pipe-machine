@@ -1,0 +1,20 @@
+{
+  "name": "pipe-machine-tests",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@bemedev/dev-utils": "^0.8.0",
+    "@bemedev/pipe-machine": "workspace:^",
+    "@bemedev/typings": "^1.2.0",
+    "@vitest/coverage-v8": "^4.1.9",
+    "tsx": "^4.22.4",
+    "typescript": "^6.0.3",
+    "valibot": "^1.4.1",
+    "vitest": "^4.1.9",
+    "zod": "^4.4.3"
+  }
+}

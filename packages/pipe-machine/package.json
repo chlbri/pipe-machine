@@ -1,0 +1,121 @@
+{
+  "name": "@bemedev/pipe-machine",
+  "version": "2.0.2",
+  "description": "A strongly-typed pipe class library for function composition with advanced TypeScript support",
+  "author": {
+    "email": "bri_lvi@icloud.com",
+    "name": "chlbri",
+    "url": "https://bemedev.vercel.app"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/chlbri/pipe-machine"
+  },
+  "license": "MIT",
+  "type": "module",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "module": "lib/index.js",
+  "maintainers": [
+    {
+      "email": "bri_lvi@icloud.com",
+      "name": "chlbri",
+      "url": "https://bemedev.vercel.app"
+    }
+  ],
+  "contributors": [
+    {
+      "email": "bri_lvi@icloud.com",
+      "name": "chlbri",
+      "url": "https://bemedev.vercel.app"
+    }
+  ],
+  "keywords": [
+    "pipe",
+    "function-composition",
+    "strongly-typed",
+    "typescript",
+    "functional-programming",
+    "utilities",
+    "lazy-implementation"
+  ],
+  "files": [
+    "lib",
+    "public"
+  ],
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "build": "pnpm run rm:lib && pnpm run rolldown",
+    "_ci": "pnpm run config && pnpm run lint && pnpm run test",
+    "ci": "CI_START=$(date +%s) && pnpm run _ci && echo \"\\n✅ CI takes $(($(date +%s) - CI_START))s\\n\"",
+    "ci:off": "CI_START=$(date +%s) && pnpm run config:off && pnpm run lint && pnpm run test && pnpm run p-q && echo \"\\n✅ CI takes $(($(date +%s) - CI_START))s\\n\"",
+    "ci:admin": "CI_START=$(date +%s) && pnpm run rm && pnpm run upgrade:fast && pnpm run _ci && pnpm run p-q && echo \"\\n✅ CI ADMIN takes $(($(date +%s) - CI_START))s\\n\"",
+    "config": "pnpm install",
+    "config:off": "pnpm run config --offline",
+    "_lint": "oxlint",
+    "lint:fix": "oxlint --fix",
+    "lint": "pnpm run fmt && pnpm run lint:fix",
+    "lint:watch": "onchange --await-write-finish 1500 -d 10000 -v \"**/*.ts\" -- pnpm run lint",
+    "build:watch": "onchange --await-write-finish 1500 -d 10000 -v \"**/*.ts\" -- pnpm run build",
+    "p-q": "pretty-quick",
+    "posttest": "build-tests post && pnpm run fmt",
+    "prepublishOnly": "",
+    "pretest": "pnpm run build && build-tests pre && pnpm run size",
+    "fmt": "oxfmt",
+    "fmt:check": "oxfmt --check",
+    "rinit": "pnpm run rm && pnpm run config",
+    "rinit:off": "pnpm run rm && pnpm run config:off",
+    "rm": "pnpx rimraf ./node_modules ./pnpm-lock.yaml",
+    "rm:lib": "pnpx rimraf ./lib",
+    "rolldown": "rolldown -c",
+    "test:coverage": "vitest run",
+    "test": "pnpm run test:coverage",
+    "test:only": "pnpm run test:coverage --no-coverage",
+    "test:ui": "vitest --ui",
+    "test:watch": "vitest",
+    "upgrade": "pnpm dlx @bemedev/upgrade-npm-package",
+    "size": "size-limit",
+    "upgrade:fast": "pnpm up --latest"
+  },
+  "size-limit": [
+    {
+      "path": "lib/*.js",
+      "limit": "10 KB"
+    },
+    {
+      "path": "lib/*.cjs",
+      "limit": "10 KB"
+    }
+  ],
+  "devDependencies": {
+    "@bemedev/dev-utils": "^0.8.0",
+    "@bemedev/typings": "^1.2.0",
+    "@size-limit/file": "^12.1.0",
+    "@types/node": "^26.0.0",
+    "@vitest/coverage-v8": "^4.1.9",
+    "@vitest/ui": "4.1.9",
+    "glob": "^13.0.6",
+    "globals": "^17.6.0",
+    "onchange": "^7.1.0",
+    "oxfmt": "^0.55.0",
+    "oxlint": "^1.70.0",
+    "pretty-quick": "^4.2.2",
+    "rolldown": "1.1.2",
+    "size-limit": "^12.1.0",
+    "tslib": "^2.8.1",
+    "tsx": "^4.22.4",
+    "typescript": "^6.0.3",
+    "valibot": "^1.4.1",
+    "vitest": "^4.1.9",
+    "zod": "^4.4.3"
+  },
+  "dependencies": {
+    "@bemedev/boolean-recursive": "^0.0.3",
+    "@bemedev/decompose": "^2.2.0",
+    "@bemedev/pipe": "1.6.1",
+    "@bemedev/sleep": "^0.2.2",
+    "@standard-schema/spec": "^1.1.0"
+  }
+}

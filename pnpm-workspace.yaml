@@ -1,3 +1,7 @@
+packages:
+  - "packages/pipe-machine"
+  - "packages/__tests__/pipe-machine"
+
 allowBuilds:
   esbuild: true
 
