@@ -54,16 +54,16 @@ class MachineTypedImpl {
       (asyncFn as any).define = (impl2: any) => {
         return new MachineTypedImpl(this.#firstFn, this.#configs).define({
           actions: {
-            ...(this.#impl.actions || {}),
-            ...(impl2.actions || {}),
+            ...this.#impl.actions,
+            ...impl2.actions,
           },
           guards: {
-            ...(this.#impl.guards || {}),
-            ...(impl2.guards || {}),
+            ...this.#impl.guards,
+            ...impl2.guards,
           },
           delays: {
-            ...(this.#impl.delays || {}),
-            ...(impl2.delays || {}),
+            ...this.#impl.delays,
+            ...impl2.delays,
           },
         });
       };
@@ -83,8 +83,8 @@ class MachineTypedImpl {
     (syncFn as any).define = (impl2: any) => {
       return new MachineTypedImpl(this.#firstFn, this.#configs).define({
         actions: {
-          ...(this.#impl.actions || {}),
-          ...(impl2.actions || {}),
+          ...this.#impl.actions,
+          ...impl2.actions,
         },
         guards: {
           ...(this.#impl.guards || {}),

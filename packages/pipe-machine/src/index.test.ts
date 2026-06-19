@@ -522,7 +522,10 @@ describe.concurrent('createPipe', () => {
     test('#03 => delayed pipeline: build returns Promise of selected value', async () => {
       const fn = createPipe((x: number) => ({ value: x }), {
         delay: 'd',
-        fn: 'increment',
+        fn: {
+          name: 'increment',
+          description: 'Increment by 1 the ctx.value',
+        },
       })
         .define({
           actions: {
