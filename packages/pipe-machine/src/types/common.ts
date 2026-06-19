@@ -12,3 +12,9 @@ export type FromDescriber<D extends Describer> = D extends string
     : never;
 
 export type Cast<T, U> = T extends U ? T : U;
+
+export type Equals<X, Y> = X extends Y
+  ? Y extends X
+    ? true
+    : false
+  : false;

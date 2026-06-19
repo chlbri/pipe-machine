@@ -37,14 +37,19 @@ let violations = 0;
 for (let x = 0; x < tests.length - 1; x++) {
   const t1 = tests[x];
   const t2 = tests[x + 1];
-  const gap = t2.lineNum - t1.endLine - 1;
+  let blankLines = 0;
+  for (let k = t1.endLine; k < t2.lineNum - 1; k++) {
+    if (lines[k].trim() === '') {
+      blankLines++;
+    }
+  }
   const bothSingle = t1.type === 'single' && t2.type === 'single';
   const expected = bothSingle ? 0 : 1;
-  if (gap !== expected) {
+  if (blankLines !== expected) {
     violations++;
     console.log(
       `VIOLATION L${t1.endLine}→L${t2.lineNum}: ` +
-        `gap=${gap} expected=${expected} ` +
+        `blankLines=${blankLines} expected=${expected} ` +
         `(${t1.type} → ${t2.type})`,
     );
     console.log(`  line ${t1.lineNum}: ${lines[t1.lineNum - 1].trim()}`);

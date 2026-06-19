@@ -2,18 +2,12 @@
 
 ## Features
 
-- **3-Step Builder** - Separate type declaration from implementation for
-  maximum clarity: `createPipe → type → define`
-- **Strongly-Typed Pipes** - Full TypeScript type inference and validation
-  throughout the pipeline
-- **Named-Step Support** - Create named pipeline steps for better code
-  clarity and partial overrides
-- **Explicit Type Spec** - Declare input/output types before providing
-  implementations
-- **Async Support** - Handle both synchronous and asynchronous function
-  pipelines
-- **Duplicate Key Support** - Reuse a step name to run the same function
-  multiple times in the pipeline
+- **2-Step Builder** - Define input parameters and starting context directly via an initializer function in `createPipe`, then provide implementations in `.define()`.
+- **Type Inference** - Automatic inference of inputs, context, and steps from your initializer function and configuration. No manual type specifications needed.
+- **Strongly-Typed Pipes** - Full TypeScript type inference and validation throughout the pipeline.
+- **Named-Step Support** - Create named pipeline steps for better code clarity and partial overrides.
+- **Async Support** - Handle both synchronous and asynchronous function pipelines seamlessly.
+- **Duplicate Key Support** - Reuse an action name to run the same function multiple times in the pipeline.
 
 ## Installation
 
@@ -28,58 +22,47 @@ pnpm add @bemedev/pipe-machine
 ```typescript
 import { createPipe } from '@bemedev/pipe-machine';
 
-const pipe = createPipe('double', 'add10')
-  .type<{
-    double: { parameters: [number]; return: number };
-    add10: number;
-  }>()
-  .define({
-    double: x => x * 2,
-    add10: x => x + 10,
-  });
+const pipe = createPipe(
+  (x: number) => ({ value: x }),
+  'double',
+  'add10'
+).define({
+  actions: {
+    double: ctx => ({ value: ctx.value * 2 }),
+    add10: ctx => ({ value: ctx.value + 10 })
+  }
+}).build(ctx => ctx.value);
 
 pipe(5); // 20
 ```
 
-## The 3-Step Flow
+## The 2-Step Flow
 
-### Step 1 — `createPipe(...keys)`
+### Step 1 — `createPipe(initializer, ...configs)`
 
-Declares the ordered list of named steps in the pipeline.
+Declares the entry point function (which determines the inputs and initial context) and the ordered list of named steps or configurations in the pipeline.
 
 ```typescript
-const builder = createPipe('parse', 'validate', 'transform');
+const builder = createPipe(
+  (input: string) => ({ text: input, count: 0 }),
+  'parse',
+  'validate'
+);
 ```
 
-### Step 2 — `.type<TypeSpec>()`
+### Step 2 — `.define(impl)`
 
-Declares the TypeScript types for the pipeline — no runtime argument, pure
-generic. Only the **first key** is required and must have the shape
-`{ parameters: [...], return: ... }`. All other keys are optional and
-specify just their **return type**. Unspecified keys default to **identity
-typing** (pass-through: same input and output type as the previous step).
+Provides the function implementations for actions, guards, and delays. Types are automatically inferred from the initializer function and the configuration array.
 
 ```typescript
-const typed = builder.type<{
-  parse: { parameters: [string]; return: number };
-  validate: number; // (n: number) => number
-  // 'transform' not listed → identity: (n: number) => number
-}>();
-```
-
-### Step 3 — `.define(impl)`
-
-Provides the function implementation for every unique key. Types are
-enforced by the spec from `.type<T>()`.
-
-```typescript
-const pipeline = typed.define({
-  parse: s => parseInt(s, 10),
-  validate: n => Math.abs(n),
-  transform: n => n * 100, // (number) => number — identity-typed
+const runner = builder.define({
+  actions: {
+    parse: ctx => ({ ...ctx, count: parseInt(ctx.text, 10) }),
+    validate: ctx => ({ ...ctx, count: Math.abs(ctx.count) }),
+  }
 });
 
-pipeline('−42'); // 4200
+runner('−42'); // { text: '−42', count: 42 }
 ```
 
 ## Advanced Usage
@@ -89,52 +72,51 @@ pipeline('−42'); // 4200
 Repeat a key name to run that function more than once:
 
 ```typescript
-const fn = createPipe('add1', 'double', 'add1', 'double', 'add1')
-  .type<{
-    add1: { parameters: [number]; return: number };
-    double: number;
-  }>()
-  .define({ add1: x => x + 1, double: x => x * 2 });
+const fn = createPipe(
+  (x: number) => ({ value: x }),
+  'add1', 'double', 'add1', 'double', 'add1'
+).define({
+  actions: {
+    add1: ctx => ({ value: ctx.value + 1 }),
+    double: ctx => ({ value: ctx.value * 2 }),
+  }
+}).build(ctx => ctx.value);
 
 fn(2); // ((((2+1)*2)+1)*2)+1 = 15
 ```
 
-When a key appears more than once, its `DefineImpl` slot is typed as
-`IdentityFn<PrevReturn>` — an identity function `(x: T) => T` — enforcing
-that a duplicated step passes its input value through unchanged in type.
-When the first key is duplicated, its `parameters` type is restricted to a
-single-element tuple to prevent ambiguous multi-arg signatures.
+All actions operate on the unified context type returned by the initializer, mapping `Context` to `Context | Promise<Context>`.
 
 ### Multi-argument first step
 
+The initializer function can accept any number of parameters, which defines the inputs of the completed pipeline:
+
 ```typescript
-const fn = createPipe('hypot', 'double')
-  .type<{
-    hypot: { parameters: [number, number]; return: number };
-    double: number;
-  }>()
-  .define({
-    hypot: (a, b) => Math.hypot(a, b),
-    double: x => x * 2,
-  });
+const fn = createPipe(
+  (a: number, b: number) => ({ value: Math.hypot(a, b) }),
+  'double'
+).define({
+  actions: {
+    double: ctx => ({ value: ctx.value * 2 }),
+  }
+}).build(ctx => ctx.value);
 
 fn(3, 4); // 10
 ```
 
 ### Async pipelines
 
-If any step returns a `Promise`, the entire pipeline becomes async:
+If the initializer function or any step action returns a `Promise`, the entire pipeline becomes async (returns a `Promise`):
 
 ```typescript
-const fn = createPipe('fetch', 'parse')
-  .type<{
-    fetch: { parameters: [string]; return: Promise<string> };
-    parse: number;
-  }>()
-  .define({
-    fetch: async url => (await fetch(url)).text(),
-    parse: s => parseInt(s, 10),
-  });
+const fn = createPipe(
+  async (url: string) => ({ text: await (await fetch(url)).text() }),
+  'parse'
+).define({
+  actions: {
+    parse: ctx => ({ value: parseInt(ctx.text, 10) }),
+  }
+}).build(ctx => ctx.value);
 
 await fn('https://example.com/value'); // number
 ```
@@ -144,65 +126,55 @@ await fn('https://example.com/value'); // number
 After building a pipeline, create variants by overriding specific steps:
 
 ```typescript
-const base = createPipe('add1', 'double')
-  .type<{
-    add1: { parameters: [number]; return: number };
-    double: number;
-  }>()
-  .define({ add1: x => x + 1, double: x => x * 2 });
+const base = createPipe(
+  (x: number) => ({ value: x }),
+  'add1',
+  'double'
+).define({
+  actions: {
+    add1: ctx => ({ value: ctx.value + 1 }),
+    double: ctx => ({ value: ctx.value * 2 }),
+  }
+});
 
-base(5); // 12
+base(5); // { value: 12 }
 
-const tripled = base.define({ double: x => x * 3 });
-tripled(5); // 18
+const tripled = base.define({
+  actions: {
+    double: ctx => ({ value: ctx.value * 3 }),
+  }
+});
+tripled(5); // { value: 18 }
 ```
 
 ## API
 
-### `createPipe(...keys: Describer[]): MachineCreated`
+### `createPipe(initializer: (...params) => Context, ...configs: Config[]): MachineTyped`
 
-Creates a pipeline builder with named steps. Each key can be a plain
-`string` or a `{ name: string; description: string }` object to attach a
-human-readable description. Throws if called with no keys. Returns an
-object with a `.type<T>()` method.
-
-### `.type<T extends MachineTypeSpec>(schema?: StandardSchemaV1): MachineTyped`
-
-Declares types for the pipeline. `T` is a pure TypeScript generic with
-shape `{ params: any[]; context: Record<string, any> }`. An optional
-`StandardSchemaV1`-compatible schema (e.g. a `zod`, a `@bemedev/typings`
-object, or `valibot` object) may be passed as a runtime argument for
-schema-based validation. Returns an object with only a `.define(impl)`
-method.
+Creates a pipeline builder. The `initializer` function defines the parameter inputs and initial context. The `configs` are an ordered sequence of configurations, which can be plain actions (strings/Describers), conditional branches (`Condition[]`), or delayed actions (`Delayed`).
 
 ### `.define(impl: MachineDefineInput): MachinePipeline`
 
-Provides implementations for actions and configuration. Returns the
-completed, callable pipeline.
+Provides implementations for the required actions, guards, and delays. Returns the completed, callable pipeline.
 
 ### `pipeline(...params): Context | Promise<Context>`
 
-Calls the composed pipeline. Returns a `Promise` if any step is async,
-otherwise returns synchronously. The return type matches the `context` type
-from the `MachineTypeSpec`.
+Calls the composed pipeline. Returns a `Promise` if the initializer or any action/delay is async, otherwise returns synchronously.
 
 ### `pipeline.define(overrides: Partial<MachineDefineInput>): MachinePipeline`
 
-Creates a new pipeline with some actions or guards replaced. Original
-pipeline is unchanged.
+Creates a new pipeline with some actions, guards, or delays replaced. Original pipeline is unchanged.
 
-### `pipeline.build<T>(select: (ctx: Context) => T): (params) => T`
+### `pipeline.build<T>(select: (ctx: Context) => T): (...params) => T`
 
-Transforms the output of the pipeline using a selector function.
+Transforms the output of the pipeline using a selector function. Returns a Promise-based function if the pipeline is async.
 
 ## Exported Types
 
 | Type                 | Description                                                        |
 | -------------------- | ------------------------------------------------------------------ |
-| `MachineCreated`     | Returned by `createPipe()`                                         |
-| `MachineTyped`       | Returned by `.type<T>()`                                           |
+| `MachineTyped`       | Returned by `createPipe(...)`                                      |
 | `MachinePipeline`    | Completed callable pipeline                                        |
-| `MachineTypeSpec`    | Type spec shape: `{ params: any[]; context: Record<string, any> }` |
 | `MachineDefineInput` | Shape of the `.define(impl)` argument                              |
 | `Describer`          | Step key type: `string` or `{ name: string; description: string }` |
 | `FromDescriber<D>`   | Extracts the string key name from a `Describer`                    |

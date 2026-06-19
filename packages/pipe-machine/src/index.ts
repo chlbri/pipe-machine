@@ -1,10 +1,8 @@
 export { createPipe } from './machine';
 export { assign, toPredicate, toSoA } from './helpers';
 export type {
-  MachineCreated,
   MachineDefineInput,
   MachinePipeline,
-  MachineTypeSpec,
   MachineTyped,
 } from './machine.types';
 export type {

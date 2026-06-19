@@ -30,7 +30,7 @@ importers:
         specifier: ^6.0.3
         version: 6.0.3
 
-  packages/__tests__/pipe-machine:
+  packages/__tests__/project1:
     devDependencies:
       '@bemedev/dev-utils':
         specifier: ^0.8.0

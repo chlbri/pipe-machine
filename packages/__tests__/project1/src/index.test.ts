@@ -1,22 +1,6 @@
-import type {
-  assign as _assign,
-  createPipe as _createPipe,
-} from './index';
-import { customImport } from '@bemedev/dev-utils/build-tests';
+import { assign, createPipe } from '@bemedev/pipe-machine';
 
 type Ctx = { value: number };
-
-let createPipe: typeof _createPipe;
-let assign: typeof _assign;
-
-beforeAll(() =>
-  customImport({
-    fn: mod => {
-      createPipe = mod.createPipe;
-      assign = mod.assign;
-    },
-  }),
-);
 
 describe('createPipe', () => {
   describe('#01 => entry-only pipeline', () => {
@@ -400,48 +384,72 @@ describe('createPipe', () => {
     });
 
     describe('#03 => sync pipeline result is not a Promise', () => {
-      test('#01 => result is correct', () => {
-        const fn = createPipe((x: number) => ({ value: x }));
+      const fn = createPipe((x: number) => ({ value: x }));
 
-        const result = fn(5);
+      const result = fn(5);
+
+      test('#01 => result is correct', () => {
         expect(result).toStrictEqual({ value: 5 });
       });
 
       test('#02 => result is not a Promise', () => {
-        const fn = createPipe((x: number) => ({ value: x }));
-
-        const result = fn(5);
         expect(result).not.toBeInstanceOf(Promise);
       });
     });
 
     describe('#04 => async action with conditions', () => {
-      test('#01 => positive value increments', async () => {
-        const fn = createPipe(
-          async (x: number) => ({ value: x }),
-          [{ guard: 'isPositive', fn: 'increment' }],
-        ).define({
-          actions: {
-            increment: async ctx => ({ value: ctx.value + 1 }),
-          },
-          guards: { isPositive: ctx => ctx.value > 0 },
-        });
+      const fn = createPipe(
+        async (x: number) => ({ value: x }),
+        [{ guard: 'isPositive', fn: 'increment' }],
+      ).define({
+        actions: {
+          increment: async ctx => ({ value: ctx.value + 1 }),
+        },
+        guards: { isPositive: ctx => ctx.value > 0 },
+      });
 
+      test('#01 => positive value increments', async () => {
         expect(await fn(5)).toStrictEqual({ value: 6 });
       });
 
       test('#02 => negative value unchanged', async () => {
-        const fn = createPipe(
-          async (x: number) => ({ value: x }),
-          [{ guard: 'isPositive', fn: 'increment' }],
-        ).define({
+        expect(await fn(-1)).toStrictEqual({ value: -1 });
+      });
+
+      test('#03 => action can be redefined to +10', async () => {
+        const fn2 = fn.define({
           actions: {
-            increment: async ctx => ({ value: ctx.value + 1 }),
+            increment: ctx => ({ value: ctx.value + 10 }),
           },
-          guards: { isPositive: ctx => ctx.value > 0 },
         });
 
-        expect(await fn(-1)).toStrictEqual({ value: -1 });
+        expect(await fn2(5)).toStrictEqual({ value: 15 });
+      });
+
+      test('#04 => redefined action can be redefined to +20', async () => {
+        const fn2 = fn.define({
+          actions: {
+            increment: ctx => ({ value: ctx.value + 10 }),
+          },
+        });
+
+        const fn3 = fn2.define({
+          actions: {
+            increment: ctx => ({ value: ctx.value + 20 }),
+          },
+        });
+
+        expect(await fn3(5)).toStrictEqual({ value: 25 });
+      });
+
+      test('#05 => action can be redefined to +15', async () => {
+        const fn4 = fn.define({
+          actions: {
+            increment: ctx => ({ value: ctx.value + 15 }),
+          },
+        });
+
+        expect(await fn4(5)).toStrictEqual({ value: 20 });
       });
     });
   });

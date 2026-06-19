@@ -3,6 +3,25 @@
 <details>
 <summary>
 
+## **[2.1.0] - 19/06/2026** => _20:43_
+
+</summary>
+
+- **BREAKING** Refactor `createPipe` to take the initializer/context-creator function directly as the first argument, removing the need for a separate `.type()` method call
+- **BREAKING** Remove `MachineCreated` and `MachineTypeSpec` exported types
+- **BREAKING** Structure `.define()` input parameter to nest actions under the `actions` key, simplifying the signature and removing special handling for the entry action
+- Refactor: Migrate project structure to a pnpm monorepo workspace and configure rolldown for package bundling
+- Refactor: Migrate project documentation and agent skills from `.claude` and `.github` directories to `.agents` directory
+- Add: `packages/__tests__/project1` for integration tests
+- <u>Test coverage **_100%_**</u>
+
+</details>
+
+<br/>
+
+<details>
+<summary>
+
 ## **[2.0.2] - 13/05/2026** => _20:18_
 
 </summary>
